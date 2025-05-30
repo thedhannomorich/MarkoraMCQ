@@ -993,9 +993,82 @@ const elements = {
 
 // Initialize the app
 function init() {
-  loadRecentHistory();
+  // Check for unfinished test
+  const unfinishedTest = localStorage.getItem('currentTestData');
+  if (unfinishedTest) {
+    showModal('You have an unfinished test. Would you like to continue?',
+      () => {
+        const testData = JSON.parse(unfinishedTest);
+        state.answers = testData.answers;
+        state.testTitle = testData.testState.testTitle;
+        state.testSubject = testData.testState.testSubject;
+        state.currentQuestionSet = testData.testState.currentQuestionSet;
+        state.totalQuestions = testData.testState.totalQuestions;
+        continueTest();
+      },
+      () => {
+        localStorage.removeItem('currentTestData');
+        loadRecentHistory();
+      }
+    );
+  } else {
+    loadRecentHistory();
+  }
+  
   renderSubjectAnalysis();
   startHistoryScroll();
+  
+  // Initialize dark mode if previously set
+  if (localStorage.getItem('darkMode') === 'true') {
+    document.body.classList.add('dark-mode');
+    elements.themeToggle.textContent = '🌞';
+  }
+  
+  // Initialize email copy functionality
+  document.getElementById('copyEmail')?.addEventListener('click', function() {
+    const email = this.textContent;
+    navigator.clipboard.writeText(email).then(() => {
+      const originalText = this.textContent;
+      this.textContent = 'Copied!';
+      setTimeout(() => this.textContent = originalText, 1500);
+    }).catch(() => {
+      alert('Failed to copy email. Please copy manually.');
+    });
+  });
+}
+
+function continueTest() {
+  // Setup UI to continue the test
+  elements.setupForm.style.display = 'none';
+  elements.timer.style.display = 'block';
+  elements.testControls.style.display = 'flex';
+  elements.progressContainer.style.display = 'block';
+  elements.questionContainer.innerHTML = '';
+  
+  // Recreate question elements with saved answers
+  state.currentQuestionSet.forEach(qNum => {
+    const div = document.createElement('div');
+    div.className = 'question';
+    div.id = `q-${qNum}`;
+    div.innerHTML = `
+      <div class="question-number">Question ${qNum}</div>
+      <div class="options-container">
+        <button class="option-btn ${state.answers[qNum] === 'ক' ? 'selected' : ''}" onclick="selectAnswer(${qNum}, 'ক', this)">ক</button>
+        <button class="option-btn ${state.answers[qNum] === 'খ' ? 'selected' : ''}" onclick="selectAnswer(${qNum}, 'খ', this)">খ</button>
+        <button class="option-btn ${state.answers[qNum] === 'গ' ? 'selected' : ''}" onclick="selectAnswer(${qNum}, 'গ', this)">গ</button>
+        <button class="option-btn ${state.answers[qNum] === 'ঘ' ? 'selected' : ''}" onclick="selectAnswer(${qNum}, 'ঘ', this)">ঘ</button>
+      </div>
+    `;
+    elements.questionContainer.appendChild(div);
+  });
+
+  state.testStarted = true;
+  updateProgress();
+  elements.testControls.innerHTML = `
+    <button class="btn btn-success" onclick="submitAnswers()">Submit Answers</button>
+    <button class="btn btn-danger" onclick="cancelTest()">Cancel Test</button>
+    <button class="btn btn-secondary" onclick="saveForLater()">Save for Later</button>
+  `;
 }
 
 // Auto-scroll for history preview
@@ -1172,6 +1245,12 @@ function goBackToHome() {
 }
 
 function resetToHome() {
+  // Clear any existing timer
+  if (state.timer) {
+    clearInterval(state.timer);
+    state.timer = null;
+  }
+
   elements.homeScreen.style.display = 'block';
   elements.setupForm.style.display = 'none';
   elements.timer.style.display = 'none';
@@ -1179,16 +1258,33 @@ function resetToHome() {
   elements.progressContainer.style.display = 'none';
   elements.questionContainer.innerHTML = '';
   elements.resultStats.style.display = 'none';
+  
+  // Reset test state
   state.testStarted = false;
+  state.answers = {};
+  state.correctAnswers = {};
+  state.currentQuestionSet = [];
+  localStorage.removeItem('currentTestData');
 }
 
 function startTest() {
+  // Clear any previous test data from storage
+  localStorage.removeItem('currentTestData');
+  
+  // Reset previous answers
+  state.answers = {};
+  state.correctAnswers = {};
+  
   // Validate inputs
   state.testTitle = document.getElementById('testTitle').value.trim();
-  if (!state.testTitle) {
-    showModal('Please enter a test title!');
-    return;
-  }
+  
+  // Make sure controls are visible
+  elements.testControls.style.display = 'flex';
+  elements.testControls.innerHTML = `
+    <button class="btn btn-success" onclick="submitAnswers()">Submit Answers</button>
+    <button class="btn btn-danger" onclick="cancelTest()">Cancel Test</button>
+    <button class="btn btn-secondary" onclick="saveForLater()">Save for Later</button>
+  `;
 
   const start = parseInt(document.getElementById('startNum').value);
   const end = parseInt(document.getElementById('endNum').value);
@@ -1240,6 +1336,12 @@ function startTest() {
 
 function selectAnswer(qNum, ans, btn) {
   state.answers[qNum] = ans;
+  
+  // Save progress to localStorage
+  localStorage.setItem('currentTestData', JSON.stringify({
+    answers: state.answers,
+    testState: state
+  }));
   
   // Clear previous selection and highlight new one
   const questionDiv = btn.closest('.question');
@@ -1298,6 +1400,7 @@ function submitAnswers() {
       elements.testControls.innerHTML = `
         <button class="btn btn-success" onclick="checkAnswers()">Check Answers</button>
         <button class="btn btn-warning" onclick="saveForLater()">Save for Later</button>
+        <button class="btn btn-info" onclick="showSubmitButton()">Show Submit Again</button>
       `;
     },
     () => {
@@ -1305,6 +1408,14 @@ function submitAnswers() {
       saveForLater();
     }
   );
+}
+
+function showSubmitButton() {
+  elements.testControls.innerHTML = `
+    <button class="btn btn-success" onclick="submitAnswers()">Submit Answers</button>
+    <button class="btn btn-danger" onclick="cancelTest()">Cancel Test</button>
+    <button class="btn btn-secondary" onclick="saveForLater()">Save for Later</button>
+  `;
 }
 
 function selectCorrect(qNum, ans, btn) {
@@ -1344,12 +1455,14 @@ function checkAnswers() {
   elements.progressContainer.style.display = 'none';
   
   saveToHistory('completed', state.answers, state.correctAnswers, state.totalQuestions, score);
+  localStorage.removeItem('currentTestData');
   
   showModal(`Your score: ${correctCount} / ${state.totalQuestions} (${score}%)`);
 }
 
 function saveForLater() {
   saveToHistory('pending', state.answers, {}, state.totalQuestions, null);
+  localStorage.removeItem('currentTestData');
   showModal('Your answers have been saved for future reference!');
   resetToHome();
 }
@@ -1358,6 +1471,7 @@ function cancelTest() {
   showModal('Are you sure you want to cancel this test?', 
     () => {
       clearInterval(state.timer);
+      localStorage.removeItem('currentTestData');
       resetToHome();
     }
   );
@@ -1573,25 +1687,8 @@ function toggleTheme() {
   elements.themeToggle.textContent = isDark ? '🌞' : '🌓';
 }
 
-// Initialize dark mode if previously set
-if (localStorage.getItem('darkMode') === 'true') {
-  document.body.classList.add('dark-mode');
-  elements.themeToggle.textContent = '🌞';
-}
-
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', init);
-  document.getElementById('copyEmail').addEventListener('click', function() {
-    const email = this.textContent;
-    navigator.clipboard.writeText(email).then(() => {
-      // Show a quick feedback (optional)
-      const originalText = this.textContent;
-      this.textContent = 'Copied!';
-      setTimeout(() => this.textContent = originalText, 1500);
-    }).catch(() => {
-      alert('Failed to copy email. Please copy manually.');
-    });
-  });
 </script>
 </body>
 </html>
