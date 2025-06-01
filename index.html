@@ -71,6 +71,15 @@ body {
   touch-action: manipulation;
 }
 
+h1 {
+  color: var(--primary-color);
+  text-align: center;
+  margin-bottom: 1rem;
+  font-family: var(--english-font);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
 h2, h3 {
   color: var(--primary-color);
   text-align: center;
@@ -220,6 +229,7 @@ label {
   font-size: 1rem;
   z-index: 100;
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  /* Make sure it stays visible above everything else */
 }
 
 #timer.warning {
@@ -728,7 +738,6 @@ select:focus-visible {
   }
 }
 </style>
-</style>
 </head>
 <body>
 
@@ -987,10 +996,16 @@ const elements = {
   progressContainer: document.getElementById('progressContainer'),
   progressBar: document.getElementById('progressBar'),
   historySubjectTitle: document.getElementById('historySubjectTitle'),
-  themeToggle: document.getElementById('themeToggle'),
   historyScroll: document.getElementById('historyScroll'),
   chartContainer: document.getElementById('chartContainer')
 };
+
+// Keyboard accessible subject selection
+function handleSubjectKeyDown(event, subject) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    selectSubject(subject);
+  }
+}
 
 // Initialize the app
 function init() {
@@ -1022,7 +1037,7 @@ function init() {
   // Initialize dark mode if previously set
   if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark-mode');
-    elements.themeToggle.textContent = '🌞';
+    // theme toggle is not in DOM initially, so handle below
   }
   
   // Initialize email copy functionality
@@ -1036,6 +1051,18 @@ function init() {
       alert('Failed to copy email. Please copy manually.');
     });
   });
+
+  // Add theme toggle button
+  if (!document.getElementById('themeToggle')) {
+    const btn = document.createElement('button');
+    btn.className = 'theme-toggle';
+    btn.id = 'themeToggle';
+    btn.type = 'button';
+    btn.title = 'Toggle dark/light theme';
+    btn.innerText = document.body.classList.contains('dark-mode') ? '🌞' : '🌓';
+    btn.onclick = toggleTheme;
+    document.body.appendChild(btn);
+  }
 }
 
 function continueTest() {
@@ -1076,18 +1103,18 @@ function continueTest() {
 function startHistoryScroll() {
   let scrollPosition = 0;
   const scrollContainer = elements.historyScroll;
-  const scrollWidth = scrollContainer.scrollWidth;
-  
-  setInterval(() => {
+  function doScroll() {
+    if (!scrollContainer) return;
     scrollPosition += 1;
-    if (scrollPosition > scrollWidth) {
+    if (scrollPosition > scrollContainer.scrollWidth - scrollContainer.clientWidth) {
       scrollPosition = 0;
       setTimeout(() => {
         scrollContainer.scrollTo({ left: 0, behavior: 'instant' });
       }, 1000);
     }
     scrollContainer.scrollTo({ left: scrollPosition, behavior: 'smooth' });
-  }, 50);
+  }
+  setInterval(doScroll, 50);
 }
 
 // Load recent history for preview
@@ -1685,7 +1712,7 @@ function toggleTheme() {
   document.body.classList.toggle('dark-mode');
   const isDark = document.body.classList.contains('dark-mode');
   localStorage.setItem('darkMode', isDark);
-  elements.themeToggle.textContent = isDark ? '🌞' : '🌓';
+  document.getElementById('themeToggle').textContent = isDark ? '🌞' : '🌓';
 }
 
 // Initialize the app when DOM is loaded
