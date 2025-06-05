@@ -999,7 +999,8 @@ const state = {
   testStarted: false,
   currentQuestionSet: [],
   optionStyle: 'bengali',
-  optionCount: 4
+  optionCount: 4,
+  phase: 'answering' // Track whether in answering or correct answer phase
 };
 
 // Warn the user before reload if in test or answer input stage
@@ -1008,7 +1009,7 @@ window.addEventListener('beforeunload', function (e) {
     state.testStarted ||
     (elements.questionContainer && elements.questionContainer.innerHTML.includes('Correct Answer for Question'))
   ) {
-    const confirmationMessage = 'Changes might not save.';
+    const confirmationMessage = 'You have an unfinished test. Are you sure you want to leave? Changes might not save.';
     (e || window.event).returnValue = confirmationMessage;
     return confirmationMessage;
   }
@@ -1040,7 +1041,7 @@ function getOptionLabels(style, count) {
     'roman-upper': ['I', 'II', 'III', 'IV', 'V', 'VI'],
     numeric: ['1', '2', '3', '4', '5', '6']
   };
-  return sets[style].slice(0, count);
+  return sets[style] ? sets[style].slice(0, count) : sets['bengali'].slice(0, count);
 }
 
 // Keyboard accessible subject selection
@@ -1050,21 +1051,22 @@ function handleSubjectKeyDown(event, subject) {
   }
 }
 
+// Helper: Scroll to top for user focus
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 // Initialize the app
 function init() {
   // Check for unfinished test
   const unfinishedTest = localStorage.getItem('currentTestData');
   if (unfinishedTest) {
-    showModal('You have an unfinished test. Would you like to continue?',
+    showModal(
+      'You have an unfinished test. Would you like to continue?',
       () => {
         const testData = JSON.parse(unfinishedTest);
-        state.answers = testData.answers;
-        state.testTitle = testData.testState.testTitle;
-        state.testSubject = testData.testState.testSubject;
-        state.currentQuestionSet = testData.testState.currentQuestionSet;
-        state.totalQuestions = testData.testState.totalQuestions;
-        state.optionStyle = testData.testState.optionStyle || 'bengali';
-        state.optionCount = testData.testState.optionCount || 4;
+        Object.assign(state, testData.testState);
+        state.answers = testData.answers || {};
         continueTest();
       },
       () => {
@@ -1075,22 +1077,22 @@ function init() {
   } else {
     loadRecentHistory();
   }
-  
+
   renderSubjectAnalysis();
   startHistoryScroll();
-  
+
   // Initialize dark mode if previously set
   if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark-mode');
   }
-  
+
   // Initialize email copy functionality
-  document.getElementById('copyEmail')?.addEventListener('click', function() {
+  document.getElementById('copyEmail')?.addEventListener('click', function () {
     const email = this.textContent;
     navigator.clipboard.writeText(email).then(() => {
       const originalText = this.textContent;
       this.textContent = 'Copied!';
-      setTimeout(() => this.textContent = originalText, 1500);
+      setTimeout(() => (this.textContent = originalText), 1500);
     }).catch(() => {
       alert('Failed to copy email. Please copy manually.');
     });
@@ -1110,58 +1112,89 @@ function init() {
 }
 
 function continueTest() {
+  scrollToTop();
   elements.setupForm.style.display = 'none';
-  elements.timer.style.display = 'block';
+  elements.resultStats.style.display = 'none';
   elements.testControls.style.display = 'flex';
   elements.progressContainer.style.display = 'block';
+  elements.timer.style.display = state.phase === 'answering' ? 'block' : 'none';
   elements.questionContainer.innerHTML = '';
 
-  // Option style/count from state (for unfinished test)
   const optionLabels = getOptionLabels(state.optionStyle, state.optionCount);
 
-  state.currentQuestionSet.forEach(qNum => {
-    const div = document.createElement('div');
-    div.className = 'question';
-    div.id = `q-${qNum}`;
-    div.innerHTML = `
-      <div class="question-number">Question ${qNum}</div>
-      <div class="options-container">
-        ${optionLabels.map(opt =>
-          `<button class="option-btn ${state.answers[qNum] === opt ? 'selected' : ''}" onclick="selectAnswer(${qNum}, '${opt}', this)">${opt}</button>`
-        ).join('')}
-      </div>
-    `;
-    elements.questionContainer.appendChild(div);
-  });
-
-  state.testStarted = true;
-  updateProgress();
-  elements.testControls.innerHTML = `
-    <button class="btn btn-success" onclick="submitAnswers()">Submit Answers</button>
-    <button class="btn btn-danger" onclick="cancelTest()">Cancel Test</button>
-    <button class="btn btn-secondary" onclick="saveForLater()">Save for Later</button>
-  `;
+  // Resume correct answer input phase if that's where the test was left
+  if (state.phase === 'providing-correct') {
+    state.currentQuestionSet.forEach(qNum => {
+      const div = document.createElement('div');
+      div.className = 'question';
+      div.id = `q-${qNum}`;
+      div.innerHTML = `
+            <div class="question-number">Correct Answer for Question ${qNum}</div>
+            <div class="options-container">
+              ${optionLabels.map(opt =>
+                `<button class="option-btn ${state.correctAnswers[qNum] === opt ? 'selected' : ''}" onclick="selectCorrect(${qNum}, '${opt}', this)">${opt}</button>`
+              ).join('')}
+            </div>
+          `;
+      elements.questionContainer.appendChild(div);
+    });
+    elements.testControls.innerHTML = `
+        <button class="btn btn-success" onclick="checkAnswers()">Check Answers</button>
+        <button class="btn btn-warning" onclick="saveForLater()">Save for Later</button>
+        <button class="btn btn-secondary" onclick="goBackToHome()">Cancel</button>
+        <button class="btn btn-info" onclick="showSubmitButton()">Show Submit Again</button>
+      `;
+    elements.progressContainer.style.display = 'none';
+    elements.timer.style.display = 'none';
+    state.testStarted = false;
+  } else {
+    // Resume answering phase
+    state.currentQuestionSet.forEach(qNum => {
+      const div = document.createElement('div');
+      div.className = 'question';
+      div.id = `q-${qNum}`;
+      div.innerHTML = `
+            <div class="question-number">Question ${qNum}</div>
+            <div class="options-container">
+              ${optionLabels.map(opt =>
+                `<button class="option-btn ${state.answers[qNum] === opt ? 'selected' : ''}" onclick="selectAnswer(${qNum}, '${opt}', this)">${opt}</button>`
+              ).join('')}
+            </div>
+          `;
+      elements.questionContainer.appendChild(div);
+    });
+    elements.testControls.innerHTML = `
+        <button class="btn btn-success" onclick="submitAnswers()">Submit Answers</button>
+        <button class="btn btn-danger" onclick="cancelTest()">Cancel Test</button>
+        <button class="btn btn-secondary" onclick="saveForLater()">Save for Later</button>
+      `;
+    updateProgress();
+    // Restore timer
+    clearInterval(state.timer);
+    updateTimer();
+    state.timer = setInterval(updateTimer, 1000);
+    state.testStarted = true;
+  }
 }
 
-// Auto-scroll for history preview
 function startHistoryScroll() {
+  // No scroll if not enough items
+  if (!elements.historyScroll) return;
   let scrollPosition = 0;
-  const scrollContainer = elements.historyScroll;
   function doScroll() {
-    if (!scrollContainer) return;
+    if (!elements.historyScroll) return;
     scrollPosition += 1;
-    if (scrollPosition > scrollContainer.scrollWidth - scrollContainer.clientWidth) {
+    if (scrollPosition > elements.historyScroll.scrollWidth - elements.historyScroll.clientWidth) {
       scrollPosition = 0;
       setTimeout(() => {
-        scrollContainer.scrollTo({ left: 0, behavior: 'instant' });
+        elements.historyScroll.scrollTo({ left: 0, behavior: 'instant' });
       }, 1000);
     }
-    scrollContainer.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+    elements.historyScroll.scrollTo({ left: scrollPosition, behavior: 'smooth' });
   }
   setInterval(doScroll, 50);
 }
 
-// Load recent history for preview
 function loadRecentHistory() {
   let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
   history = history.slice(0, 5);
@@ -1175,17 +1208,18 @@ function loadRecentHistory() {
     testDiv.className = 'history-item';
     testDiv.innerHTML = `
       <h4>${test.title}</h4>
-      <p>${test.subject}</p>
-      <p>${test.date}</p>
-      ${test.score !== null ? `<p><strong>Score:</strong> ${test.score}%</p>` : '<p>Pending</p>'}
+      <p>${test.subject ?? ''}</p>
+      <p>${test.date ?? ''}</p>
+      ${test.score !== null && typeof test.score !== 'undefined' ? `<p><strong>Score:</strong> ${test.score}%</p>` : '<p>Pending</p>'}
     `;
     testDiv.addEventListener('click', () => viewTestDetails(test));
     elements.historyScroll.appendChild(testDiv);
   });
 }
 
-// Updated renderSubjectAnalysis function
+// Subject Analysis and chart rendering (unchanged)
 function renderSubjectAnalysis(filter = 'all') {
+  // ... (same as before)
   let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
   const now = new Date();
   if (filter === 'year') {
@@ -1196,8 +1230,8 @@ function renderSubjectAnalysis(filter = 'all') {
   } else if (filter === 'month') {
     history = history.filter(test => {
       const testDate = new Date(test.date);
-      return now.getFullYear() === testDate.getFullYear() && 
-             now.getMonth() === testDate.getMonth();
+      return now.getFullYear() === testDate.getFullYear() &&
+        now.getMonth() === testDate.getMonth();
     });
   } else if (filter === 'week') {
     history = history.filter(test => {
@@ -1282,19 +1316,25 @@ function filterAnalysis(filter) {
 }
 
 function selectSubject(subject) {
+  scrollToTop();
   state.testSubject = subject;
   elements.subjectTitle.textContent = subject;
   elements.homeScreen.style.display = 'none';
   elements.setupForm.style.display = 'block';
+  elements.resultStats.style.display = 'none';
+  elements.questionContainer.innerHTML = '';
 }
 
 function goBackToHome() {
-  if (state.testStarted) {
-    showModal('Are you sure you want to cancel this test?', 
+  if (state.testStarted || state.phase === 'providing-correct') {
+    showModal(
+      'Are you sure you want to cancel this test? It will be removed from history.',
       () => {
         clearInterval(state.timer);
+        removePendingFromHistory();
         resetToHome();
-      }
+      },
+      () => { /* do nothing, stay */ }
     );
   } else {
     resetToHome();
@@ -1302,6 +1342,7 @@ function goBackToHome() {
 }
 
 function resetToHome() {
+  // Clear any existing timer
   if (state.timer) {
     clearInterval(state.timer);
     state.timer = null;
@@ -1314,6 +1355,7 @@ function resetToHome() {
   elements.questionContainer.innerHTML = '';
   elements.resultStats.style.display = 'none';
   state.testStarted = false;
+  state.phase = 'answering';
   state.answers = {};
   state.correctAnswers = {};
   state.currentQuestionSet = [];
@@ -1322,37 +1364,63 @@ function resetToHome() {
   localStorage.removeItem('currentTestData');
 }
 
+function removePendingFromHistory() {
+  let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
+  // Remove the first pending test that matches the current test title & subject (most recent)
+  const idx = history.findIndex(
+    t => t.status === 'pending' &&
+      t.title === state.testTitle &&
+      t.subject === state.testSubject
+  );
+  if (idx > -1) {
+    history.splice(idx, 1);
+    localStorage.setItem('omrHistory', JSON.stringify(history));
+    loadRecentHistory();
+    renderSubjectAnalysis();
+  }
+}
+
 function startTest() {
+  scrollToTop();
   localStorage.removeItem('currentTestData');
   state.answers = {};
   state.correctAnswers = {};
+  state.phase = 'answering';
 
   state.testTitle = document.getElementById('testTitle').value.trim();
   const start = parseInt(document.getElementById('startNum').value);
   const end = parseInt(document.getElementById('endNum').value);
   const timePerQuestion = parseInt(document.getElementById('timePerQuestion').value) || 60;
   // Get new fields
-  state.optionStyle = document.getElementById('optionStyle').value;
-  state.optionCount = parseInt(document.getElementById('optionCount').value, 10);
+  state.optionStyle = (document.getElementById('optionStyle') && document.getElementById('optionStyle').value) || 'bengali';
+  state.optionCount = parseInt(document.getElementById('optionCount') && document.getElementById('optionCount').value, 10) || 4;
 
-elements.testControls.style.display = 'none';
-if (isNaN(start) || isNaN(end) || end < start) {
-  showModal('Please enter valid serial numbers!');
-  return;
-}
+  elements.testControls.style.display = 'none';
+  if (!state.testTitle) {
+    showModal('Test title cannot be empty!', () => {}, () => {});
+    return;
+  }
+  if (isNaN(start) || isNaN(end) || end < start) {
+    showModal('Please enter valid serial numbers!', () => {}, () => {});
+    return;
+  }
+  if (state.optionCount < 2 || state.optionCount > 6) {
+    showModal('Option count must be between 2 and 6.', () => {}, () => {});
+    return;
+  }
 
-elements.testControls.style.display = 'flex';
-elements.testControls.innerHTML = `
-  <button class="btn btn-success" onclick="submitAnswers()">Submit Answers</button>
-  <button class="btn btn-danger" onclick="cancelTest()">Cancel Test</button>
-  <button class="btn btn-secondary" onclick="saveForLater()">Save for Later</button>
-`;
+  elements.testControls.style.display = 'flex';
+  elements.testControls.innerHTML = `
+    <button class="btn btn-success" onclick="submitAnswers()">Submit Answers</button>
+    <button class="btn btn-danger" onclick="cancelTest()">Cancel Test</button>
+    <button class="btn btn-secondary" onclick="saveForLater()">Save for Later</button>
+  `;
 
   state.totalQuestions = end - start + 1;
   state.timeLeft = state.totalQuestions * timePerQuestion;
   state.answers = {};
   state.correctAnswers = {};
-  state.currentQuestionSet = Array.from({length: end - start + 1}, (_, i) => start + i);
+  state.currentQuestionSet = Array.from({ length: end - start + 1 }, (_, i) => start + i);
   state.testStarted = true;
 
   elements.setupForm.style.display = 'none';
@@ -1401,8 +1469,7 @@ function selectAnswer(qNum, ans, btn) {
 function updateTimer() {
   if (state.timeLeft <= 0) {
     clearInterval(state.timer);
-    showModal('Time is up!');
-    submitAnswers();
+    showModal('Time is up!', () => { submitAnswers(); }, () => {});
     return;
   }
   const minutes = Math.floor(state.timeLeft / 60);
@@ -1419,10 +1486,12 @@ function updateProgress() {
 }
 
 function submitAnswers() {
+  scrollToTop();
   clearInterval(state.timer);
   state.testStarted = false;
-
-  showModal('Are you ready to provide the correct answers?', 
+  state.phase = 'providing-correct';
+  showModal(
+    'Are you ready to provide the correct answers?',
     () => {
       elements.questionContainer.innerHTML = '';
       const optionLabels = getOptionLabels(state.optionStyle, state.optionCount);
@@ -1443,11 +1512,18 @@ function submitAnswers() {
       elements.testControls.innerHTML = `
         <button class="btn btn-success" onclick="checkAnswers()">Check Answers</button>
         <button class="btn btn-warning" onclick="saveForLater()">Save for Later</button>
+        <button class="btn btn-secondary" onclick="goBackToHome()">Cancel</button>
         <button class="btn btn-info" onclick="showSubmitButton()">Show Submit Again</button>
       `;
+      elements.progressContainer.style.display = 'none';
+      elements.timer.style.display = 'none';
     },
     () => {
-      saveForLater();
+      // If user cancels, allow them to save for later or resume test
+      showModal("You can save for later or return to the test. Do you want to save for later?",
+        () => { saveForLater(); },
+        () => { continueTest(); }
+      );
     }
   );
 }
@@ -1462,6 +1538,10 @@ function showSubmitButton() {
 
 function selectCorrect(qNum, ans, btn) {
   state.correctAnswers[qNum] = ans;
+  localStorage.setItem('currentTestData', JSON.stringify({
+    answers: state.answers,
+    testState: state
+  }));
   const questionDiv = btn.closest('.question');
   const buttons = questionDiv.querySelectorAll('.option-btn');
   buttons.forEach(b => b.classList.remove('selected'));
@@ -1489,42 +1569,47 @@ function checkAnswers() {
   elements.testControls.style.display = 'none';
   elements.timer.style.display = 'none';
   elements.progressContainer.style.display = 'none';
-  saveToHistory('completed', state.answers, state.correctAnswers, state.totalQuestions, score);
+  saveToHistory('completed', state.answers, state.correctAnswers, state.totalQuestions, score, null, null, 'completed');
   localStorage.removeItem('currentTestData');
-  showModal(`Your score: ${correctCount} / ${state.totalQuestions} (${score}%)`);
+  showModal(`Your score: ${correctCount} / ${state.totalQuestions} (${score}%)`, () => { goBackToHome(); }, null);
 }
 
 function saveForLater() {
-  saveToHistory('pending', state.answers, {}, state.totalQuestions, null);
+  // Save all necessary state for resuming the test (including phase)
+  saveToHistory('pending', state.answers, state.correctAnswers, state.totalQuestions, null, state.timeLeft, { ...state }, state.phase);
   localStorage.removeItem('currentTestData');
-  showModal('Your answers have been saved for future reference!');
-  resetToHome();
+  showModal('Your progress has been saved for later!', () => { resetToHome(); }, null);
 }
 
 function cancelTest() {
-  showModal('Are you sure you want to cancel this test?', 
+  showModal(
+    'Are you sure you want to cancel this test? It will be removed from history.',
     () => {
       clearInterval(state.timer);
-      localStorage.removeItem('currentTestData');
+      removePendingFromHistory();
       resetToHome();
-    }
+    },
+    () => { /* do nothing, stay */ }
   );
 }
 
-function saveToHistory(status, answers, corrects, total, score) {
+function saveToHistory(status, answers, corrects, total, score, timeLeft = null, extraState = null, phase = "answering") {
   let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
+  // Remove any existing pending entry for the same title & subject (keep only latest)
+  history = history.filter(t => !(t.status === 'pending' && t.title === state.testTitle && t.subject === state.testSubject));
   history.unshift({
     title: state.testTitle,
     subject: state.testSubject,
     date: new Date().toLocaleString(),
     status: status,
-    answers: answers,
-    correctAnswers: corrects,
+    answers: { ...answers },
+    correctAnswers: { ...corrects },
     total: total,
     score: score,
-    questionSet: state.currentQuestionSet,
-    optionStyle: state.optionStyle,
-    optionCount: state.optionCount
+    questionSet: [...state.currentQuestionSet],
+    timeLeft: timeLeft,
+    extraState: extraState,
+    phase: phase
   });
   localStorage.setItem('omrHistory', JSON.stringify(history));
   loadRecentHistory();
@@ -1551,11 +1636,11 @@ function filterHistory() {
     } else if (statusFilter === 'pending') {
       statusMatch = test.status === 'pending';
     }
-    const searchMatch = test.title.toLowerCase().includes(searchTerm) || 
-                       test.subject.toLowerCase().includes(searchTerm);
+    const searchMatch = test.title.toLowerCase().includes(searchTerm) ||
+      (test.subject && test.subject.toLowerCase().includes(searchTerm));
     return subjectMatch && statusMatch && searchMatch;
   });
-  switch(sortFilter) {
+  switch (sortFilter) {
     case 'newest':
       filteredHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
       break;
@@ -1564,15 +1649,15 @@ function filterHistory() {
       break;
     case 'highest':
       filteredHistory.sort((a, b) => {
-        const aScore = a.score !== null ? a.score : -1;
-        const bScore = b.score !== null ? b.score : -1;
+        const aScore = a.score !== null && typeof a.score !== 'undefined' ? a.score : -1;
+        const bScore = b.score !== null && typeof b.score !== 'undefined' ? b.score : -1;
         return bScore - aScore;
       });
       break;
     case 'lowest':
       filteredHistory.sort((a, b) => {
-        const aScore = a.score !== null ? a.score : Infinity;
-        const bScore = b.score !== null ? b.score : Infinity;
+        const aScore = a.score !== null && typeof a.score !== 'undefined' ? a.score : Infinity;
+        const bScore = b.score !== null && typeof b.score !== 'undefined' ? b.score : Infinity;
         return aScore - bScore;
       });
       break;
@@ -1596,10 +1681,10 @@ function displayHistory(history) {
       else if (test.status === 'pending') statusColor = 'var(--warning-color)';
       testDiv.innerHTML = `
         <div style="font-weight: bold;">${test.title}</div>
-        <div style="font-size: 0.9em; color: #aaa;">${test.subject} • ${test.date}</div>
+        <div style="font-size: 0.9em; color: #aaa;">${test.subject ?? ''} • ${test.date ?? ''}</div>
         <div style="display: flex; justify-content: space-between; margin-top: 5px;">
           <span style="color: ${statusColor}">${test.status.toUpperCase()}</span>
-          ${test.score !== null ? `<span style="font-weight: bold;">Score: ${test.score}%</span>` : ''}
+          ${test.score !== null && typeof test.score !== 'undefined' ? `<span style="font-weight: bold;">Score: ${test.score}%</span>` : ''}
         </div>
       `;
       testDiv.addEventListener('click', () => viewTestDetails(test));
@@ -1611,13 +1696,28 @@ function displayHistory(history) {
 function viewTestDetails(test) {
   let content = `
     <h3>${test.title}</h3>
-    <p><strong>Subject:</strong> ${test.subject}</p>
-    <p><strong>Date:</strong> ${test.date}</p>
-    <p><strong>Status:</strong> ${test.status}</p>
-    ${test.score !== null ? `<p><strong>Score:</strong> ${test.score}%</p>` : ''}
-    <p><strong>Questions:</strong> ${test.questionSet[0]} to ${test.questionSet[test.questionSet.length - 1]}</p>
+    <p><strong>Subject:</strong> ${test.subject ?? ''}</p>
+    <p><strong>Date:</strong> ${test.date ?? ''}</p>
+    <p><strong>Status:</strong> ${test.status ?? ''}</p>
+    ${test.score !== null && typeof test.score !== 'undefined' ? `<p><strong>Score:</strong> ${test.score}%</p>` : ''}
+    <p><strong>Questions:</strong> ${test.questionSet ? test.questionSet[0] : ''} to ${test.questionSet ? test.questionSet[test.questionSet.length - 1] : ''}</p>
   `;
-  if (test.status === 'completed') {
+
+  if (test.status === 'pending') {
+    if (test.phase === 'providing-correct') {
+      content += `<div class="modal-buttons">
+        <button class="btn btn-success" onclick="resumePendingTest('${test.date}', true)">Resume Providing Correct Answers</button>
+        <button class="btn btn-danger" onclick="removeSinglePendingFromHistory('${test.title.replace(/'/g, "\\'")}', '${test.subject.replace(/'/g, "\\'")}')">Remove</button>
+        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+      </div>`;
+    } else {
+      content += `<div class="modal-buttons">
+        <button class="btn btn-success" onclick="resumePendingTest('${test.date}', false)">Resume Test</button>
+        <button class="btn btn-danger" onclick="removeSinglePendingFromHistory('${test.title.replace(/'/g, "\\'")}', '${test.subject.replace(/'/g, "\\'")}')">Remove</button>
+        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+      </div>`;
+    }
+  } else if (test.status === 'completed') {
     content += `<div style="max-height: 300px; overflow-y: auto; margin-top: 15px; border-top: 1px solid #444; padding-top: 10px;">
       <h4>Question Details</h4>
       <table style="width: 100%; border-collapse: collapse;">
@@ -1638,125 +1738,140 @@ function viewTestDetails(test) {
         </tr>
       `;
     });
-    content += `</table></div>`;
-  }
-  if (test.status === 'pending') {
-    content += `
+    content += `</table></div>
       <div class="modal-buttons">
-        <button class="btn btn-success" onclick="resumeCorrectAnswer('${test.title.replace(/'/g,"\\'")}')">Provide Correct Answers</button>
-      </div>
-    `;
+        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+      </div>`;
   }
+
   showModal(content);
   closeHistoryModal();
 }
 
-// Resuming correct answer entry for a pending test
-function resumeCorrectAnswer(title) {
+// Remove a single pending entry by title and subject
+function removeSinglePendingFromHistory(title, subject) {
   let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
-  const test = history.find(t => t.title === title && t.status === 'pending');
+  const idx = history.findIndex(t => t.status === 'pending' && t.title === title && t.subject === subject);
+  if (idx > -1) {
+    history.splice(idx, 1);
+    localStorage.setItem('omrHistory', JSON.stringify(history));
+    loadRecentHistory();
+    renderSubjectAnalysis();
+    showModal('Pending test removed from history.', () => { closeModal(); }, null);
+  } else {
+    showModal('Pending test not found.', () => { closeModal(); }, null);
+  }
+}
+
+// Resuming a pending test
+function resumePendingTest(date, isCorrectPhase = false) {
+  scrollToTop();
+  const history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
+  const test = history.find(t => t.date === date && t.status === 'pending');
   if (!test) {
-    showModal('Could not find the pending test.');
+    showModal('Pending test not found.', () => {}, null);
     return;
   }
+  // Restore state
   state.testTitle = test.title;
   state.testSubject = test.subject;
   state.currentQuestionSet = test.questionSet;
   state.totalQuestions = test.total;
-  state.answers = test.answers;
-  state.correctAnswers = {};
-  state.optionStyle = test.optionStyle || 'bengali';
-  state.optionCount = test.optionCount || 4;
-  document.getElementById('modal').style.display = 'none';
-  document.getElementById('historyModal').style.display = 'none';
+  state.answers = test.answers || {};
+  state.correctAnswers = test.correctAnswers || {};
+  state.timeLeft = test.timeLeft || (test.total * 60);
+  state.phase = test.phase || "answering";
+  state.optionStyle = (test.extraState && test.extraState.optionStyle) || 'bengali';
+  state.optionCount = (test.extraState && test.extraState.optionCount) || 4;
+  state.testStarted = !isCorrectPhase;
+  // Save to localStorage for crash recovery
+  localStorage.setItem('currentTestData', JSON.stringify({
+    answers: state.answers,
+    testState: { ...state }
+  }));
+  closeModal();
   elements.homeScreen.style.display = 'none';
   elements.setupForm.style.display = 'none';
   elements.resultStats.style.display = 'none';
-  elements.timer.style.display = 'none';
-  elements.progressContainer.style.display = 'none';
-  elements.testControls.style.display = 'flex';
-  elements.questionContainer.innerHTML = '';
-  const optionLabels = getOptionLabels(state.optionStyle, state.optionCount);
-  state.currentQuestionSet.forEach(qNum => {
-    const div = document.createElement('div');
-    div.className = 'question';
-    div.id = `q-${qNum}`;
-    div.innerHTML = `
-      <div class="question-number">Correct Answer for Question ${qNum}</div>
-      <div class="options-container">
-        ${optionLabels.map(opt =>
-          `<button class="option-btn" onclick="selectCorrect(${qNum}, '${opt}', this)">${opt}</button>`
-        ).join('')}
-      </div>
+  if (isCorrectPhase || state.phase === 'providing-correct') {
+    state.phase = 'providing-correct';
+    elements.questionContainer.innerHTML = '';
+    const optionLabels = getOptionLabels(state.optionStyle, state.optionCount);
+    state.currentQuestionSet.forEach(qNum => {
+      const div = document.createElement('div');
+      div.className = 'question';
+      div.id = `q-${qNum}`;
+      div.innerHTML = `
+        <div class="question-number">Correct Answer for Question ${qNum}</div>
+        <div class="options-container">
+          ${optionLabels.map(opt =>
+            `<button class="option-btn ${state.correctAnswers[qNum] === opt ? 'selected' : ''}" onclick="selectCorrect(${qNum}, '${opt}', this)">${opt}</button>`
+          ).join('')}
+        </div>
+      `;
+      elements.questionContainer.appendChild(div);
+    });
+    elements.testControls.style.display = 'flex';
+    elements.testControls.innerHTML = `
+      <button class="btn btn-success" onclick="checkAnswers()">Check Answers</button>
+      <button class="btn btn-warning" onclick="saveForLater()">Save for Later</button>
+      <button class="btn btn-secondary" onclick="goBackToHome()">Cancel</button>
+      <button class="btn btn-info" onclick="showSubmitButton()">Show Submit Again</button>
     `;
-    elements.questionContainer.appendChild(div);
-  });
-  elements.testControls.innerHTML = `
-    <button class="btn btn-success" onclick="checkAnswersFromPending('${test.title.replace(/'/g,"\\'")}')">Check Answers</button>
-    <button class="btn btn-secondary" onclick="goBackToHome()">Cancel</button>
-  `;
-}
-
-function checkAnswersFromPending(title) {
-  let correctCount = 0;
-  state.currentQuestionSet.forEach(qNum => {
-    const questionDiv = document.getElementById(`q-${qNum}`);
-    const userAnswer = state.answers[qNum];
-    const correctAnswer = state.correctAnswers[qNum];
-    if (userAnswer === correctAnswer) {
-      correctCount++;
-      questionDiv.classList.add('correct');
-    } else {
-      questionDiv.classList.add('mistake');
-    }
-  });
-  const score = Math.round((correctCount / state.totalQuestions) * 100);
-  document.getElementById('totalQuestions').textContent = state.totalQuestions;
-  document.getElementById('correctAnswers').textContent = correctCount;
-  document.getElementById('scorePercentage').textContent = `${score}%`;
-  elements.resultStats.style.display = 'block';
-  elements.testControls.style.display = 'none';
-  elements.timer.style.display = 'none';
-  elements.progressContainer.style.display = 'none';
-  // Update history: mark as completed, store correct answers, score
-  let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
-  const testIdx = history.findIndex(t => t.title === title && t.status === 'pending');
-  if (testIdx > -1) {
-    history[testIdx].correctAnswers = state.correctAnswers;
-    history[testIdx].score = score;
-    history[testIdx].status = 'completed';
-    localStorage.setItem('omrHistory', JSON.stringify(history));
+    elements.progressContainer.style.display = 'none';
+    elements.timer.style.display = 'none';
+  } else {
+    // Resume answering
+    elements.timer.style.display = 'block';
+    elements.progressContainer.style.display = 'block';
+    elements.testControls.style.display = 'flex';
+    elements.questionContainer.innerHTML = '';
+    const optionLabels = getOptionLabels(state.optionStyle, state.optionCount);
+    state.currentQuestionSet.forEach(qNum => {
+      const div = document.createElement('div');
+      div.className = 'question';
+      div.id = `q-${qNum}`;
+      div.innerHTML = `
+        <div class="question-number">Question ${qNum}</div>
+        <div class="options-container">
+          ${optionLabels.map(opt =>
+            `<button class="option-btn ${state.answers[qNum] === opt ? 'selected' : ''}" onclick="selectAnswer(${qNum}, '${opt}', this)">${opt}</button>`
+          ).join('')}
+        </div>
+      `;
+      elements.questionContainer.appendChild(div);
+    });
+    elements.testControls.innerHTML = `
+      <button class="btn btn-success" onclick="submitAnswers()">Submit Answers</button>
+      <button class="btn btn-danger" onclick="cancelTest()">Cancel Test</button>
+      <button class="btn btn-secondary" onclick="saveForLater()">Save for Later</button>
+    `;
+    updateProgress();
+    clearInterval(state.timer);
+    updateTimer();
+    state.timer = setInterval(updateTimer, 1000);
   }
-  showModal(`Your score: ${correctCount} / ${state.totalQuestions} (${score}%)`);
-  loadRecentHistory();
-  renderSubjectAnalysis();
 }
 
-function closeHistoryModal() {
-  document.getElementById('historyModal').style.display = 'none';
-}
-
+// Modal functions
 function showModal(message, onConfirm, onCancel) {
   const modal = document.getElementById('modal');
   const content = document.getElementById('modalContent');
   content.innerHTML = `<p>${message}</p>`;
-  if (onConfirm || onCancel) {
-    const buttons = document.createElement('div');
-    buttons.className = 'modal-buttons';
-    if (onConfirm) {
-      buttons.innerHTML += `<button class="btn" onclick="closeModal(true)">Yes</button>`;
-    }
-    if (onCancel) {
-      buttons.innerHTML += `<button class="btn btn-secondary" onclick="closeModal(false)">No</button>`;
-    }
-    content.appendChild(buttons);
-    modal.dataset.onConfirm = onConfirm ? onConfirm.toString() : '';
-    modal.dataset.onCancel = onCancel ? onCancel.toString() : '';
-  } else {
-    content.innerHTML += `<div class="modal-buttons">
-      <button class="btn" onclick="closeModal()">OK</button>
-    </div>`;
+  const buttons = document.createElement('div');
+  buttons.className = 'modal-buttons';
+  if (onConfirm) {
+    buttons.innerHTML += `<button class="btn" onclick="closeModal(true)">Yes</button>`;
   }
+  if (onCancel) {
+    buttons.innerHTML += `<button class="btn btn-secondary" onclick="closeModal(false)">No</button>`;
+  }
+  if (!onConfirm && !onCancel) {
+    buttons.innerHTML += `<button class="btn" onclick="closeModal()">OK</button>`;
+  }
+  content.appendChild(buttons);
+  modal.dataset.onConfirm = onConfirm ? onConfirm.toString() : '';
+  modal.dataset.onCancel = onCancel ? onCancel.toString() : '';
   modal.style.display = 'flex';
 }
 
@@ -1775,6 +1890,10 @@ function toggleTheme() {
   const isDark = document.body.classList.contains('dark-mode');
   localStorage.setItem('darkMode', isDark);
   document.getElementById('themeToggle').textContent = isDark ? '🌞' : '🌓';
+}
+
+function closeHistoryModal() {
+  document.getElementById('historyModal').style.display = 'none';
 }
 
 document.addEventListener('DOMContentLoaded', init);
