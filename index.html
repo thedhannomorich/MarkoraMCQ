@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -9,55 +8,46 @@
 @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
-/* Animations - Optimized for performance */
+/* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(10px);}
+  to { opacity: 1; transform: translateY(0);}
 }
-
 @keyframes scaleIn {
-  0% { opacity: 0; transform: scale(0.98); }
-  100% { opacity: 1; transform: scale(1); }
+  0% { opacity: 0; transform: scale(0.98);}
+  100% { opacity: 1; transform: scale(1);}
 }
-
+@keyframes gradientMove {
+  0% {background-position:0% 50%;}
+  50% {background-position:100% 50%;}
+  100% {background-position:0% 50%;}
+}
 @keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  0%, 100% { transform: scale(1);}
+  50% { transform: scale(1.05);}
 }
-
-/* Reduced animation intensity for mobile */
 @media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important;}
 }
-
-/* Variables */
 :root {
-  --primary-color: #ffffff;
-  --secondary-color: #aaaaaa;
-  --accent-color: #8ac926;
-  --success-color: #4caf50;
-  --error-color: #f44336;
-  --warning-color: #ff9800;
+  --primary-color: #fff;
+  --secondary-color: #aaa;
   --dark-bg: #121212;
   --dark-card: #1e1e1e;
   --dark-text-color: #f0f0f0;
   --bangla-font: 'Hind Siliguri', sans-serif;
   --english-font: 'Poppins', sans-serif;
-  --border-radius: 0.625rem; /* 10px in rem */
-  --min-touch-size: 48px; /* Minimum touch target size */
+  --border-radius: 0.625rem;
+  --min-touch-size: 48px;
+  /* Individual Gradients */
+  --accent-gradient: linear-gradient(90deg, #b1ff8a 0%, #24c96b 100%);
+  --success-gradient: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+  --error-gradient: linear-gradient(90deg, #ff5858 0%, #f857a6 100%);
+  --warning-gradient: linear-gradient(90deg, #ffb347 0%, #ff774e 100%);
+  --option-gradient: linear-gradient(120deg, #5ee7df 0%, #3a8dde 100%);
+  --secondary-gradient: linear-gradient(90deg, #434343 0%, #262626 100%);
 }
-
-/* Global */
-* {
-  -webkit-tap-highlight-color: transparent;
-  box-sizing: border-box;
-}
-
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box;}
 body {
   font-family: var(--bangla-font);
   margin: 0;
@@ -67,10 +57,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   user-select: text;
-  -webkit-user-select: text;
   touch-action: manipulation;
 }
-
 h1 {
   color: var(--primary-color);
   text-align: center;
@@ -79,12 +67,11 @@ h1 {
   font-weight: 700;
   letter-spacing: 1px;
 }
-
 h2, h3 {
   color: var(--primary-color);
   text-align: center;
   margin-bottom: 1.5rem;
-  border-bottom: 2px solid var(--accent-color);
+  border-bottom: 2px solid #24c96b;
   padding-bottom: 0.625rem;
   font-weight: 700;
 }
@@ -106,17 +93,10 @@ h2, h3 {
   animation-fill-mode: both;
   padding: 1.5rem;
 }
+.container { max-width: 62.5rem; margin: 1.25rem auto; padding: 1.5rem;}
 
-.container {
-  max-width: 62.5rem;
-  margin: 1.25rem auto;
-  padding: 1.5rem;
-}
-
-/* Inputs - Improved validation states */
-input[type="text"],
-input[type="number"],
-select {
+/* Inputs */
+input[type="text"], input[type="number"], select {
   width: 100%;
   padding: 0.75rem;
   background: #2c2c2c;
@@ -129,27 +109,14 @@ select {
   transition: border-color 0.2s ease;
   min-height: var(--min-touch-size);
 }
-
-input[type="text"]:invalid,
-input[type="number"]:invalid {
-  border-color: var(--error-color);
+input[type="text"]:invalid, input[type="number"]:invalid { border-color: #f857a6;}
+input[type="text"]:focus, input[type="number"]:focus, select:focus {
+  border-color: #24c96b;
+  outline: 2px solid #24c96b;
 }
+label { font-weight: 700; margin-bottom: 0.5rem; display: block; font-size: 1rem; }
 
-input[type="text"]:focus,
-input[type="number"]:focus,
-select:focus {
-  border-color: var(--accent-color);
-  outline: 2px solid var(--accent-color);
-}
-
-label {
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  display: block;
-  font-size: 1rem;
-}
-
-/* Buttons - Improved touch targets */
+/* Buttons - Gradients & Animation */
 .btn,
 .option-btn,
 .theme-toggle {
@@ -157,7 +124,7 @@ label {
   border: none;
   border-radius: var(--border-radius);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.5s;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
@@ -168,55 +135,52 @@ label {
   justify-content: center;
   padding: 0.75rem 1.25rem;
   font-size: 1rem;
+  color: #fff;
+  background: var(--accent-gradient);
+  background-size: 200% 200%;
+  animation: gradientMove 3s linear infinite;
+  box-shadow: 0 2px 8px #24c96b22;
 }
-
-.btn {
-  background: var(--accent-color);
-  color: #000;
-  margin: 0.25rem;
-}
-
 .btn:hover:not(:disabled),
 .option-btn:hover:not(:disabled),
 .theme-toggle:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 0.5rem 1.5rem #24c96b33;
 }
-
 .btn:active:not(:disabled),
 .option-btn:active:not(:disabled),
 .theme-toggle:active:not(:disabled) {
-  transform: translateY(0);
-  animation: pulse 0.2s ease;
+  transform: translateY(0) scale(0.98);
+  animation: pulse 0.2s;
 }
-
-.btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-/* Button variants */
+.btn:disabled { opacity: 0.7; cursor: not-allowed; }
+/* Button variants - gradients */
 .btn-secondary {
-  background: #555;
+  background: var(--secondary-gradient);
   color: #fff;
+  background-size: 200% 200%;
+  animation: gradientMove 6s linear infinite;
 }
-
 .btn-success {
-  background: var(--success-color);
-  color: #000;
-}
-
-.btn-danger {
-  background: var(--error-color);
+  background: var(--success-gradient);
   color: #fff;
+  background-size: 200% 200%;
+  animation: gradientMove 4s linear infinite;
 }
-
+.btn-danger {
+  background: var(--error-gradient);
+  color: #fff;
+  background-size: 200% 200%;
+  animation: gradientMove 4s linear infinite;
+}
 .btn-warning {
-  background: var(--warning-color);
-  color: #000;
+  background: var(--warning-gradient);
+  color: #fff;
+  background-size: 200% 200%;
+  animation: gradientMove 4s linear infinite;
 }
 
-/* Timer - Improved visibility */
+/* Timer */
 #timer {
   position: fixed;
   top: 1.25rem;
@@ -229,27 +193,23 @@ label {
   font-size: 1rem;
   z-index: 100;
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  /* Make sure it stays visible above everything else */
 }
-
 #timer.warning {
-  color: #ffcc00;
+  color: #ffb347;
   animation: pulse 1s infinite;
 }
-
 #timer.critical {
-  color: var(--error-color);
+  color: #ff5858;
   animation: pulse 0.5s infinite;
 }
 
-/* Question grid - Improved spacing */
+/* Question grid */
 #questionContainer {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
   gap: 1.25rem;
   margin: 1.5rem 0;
 }
-
 .question {
   border: 1px solid #333;
   padding: 1.25rem;
@@ -258,16 +218,17 @@ label {
   min-height: 12rem;
   font-size: 1rem;
   user-select: none;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s;
+  background: var(--dark-card);
+  color: var(--dark-text-color);
+  animation: fadeIn 0.4s;
 }
-
 .question-number {
-  color: var(--accent-color);
+  color: #24c96b;
   font-weight: 700;
   margin-bottom: 0.75rem;
   font-size: 1.1rem;
 }
-
 .options-container {
   display: flex;
   flex-wrap: wrap;
@@ -275,40 +236,47 @@ label {
   gap: 0.75rem;
   justify-content: center;
 }
-
 .option-btn {
   width: 3rem;
   height: 3rem;
   border: 2px solid #666;
-  background: #333;
-  border-radius: 50%;
-  color: var(--primary-color);
+  background: var(--option-gradient);
+  background-size: 200% 200%;
+  color: #fff;
   font-weight: 700;
   font-size: 1.1rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: all 0.2s ease;
+  transition: all 0.2s, background 0.5s;
+  border-radius: 50%;
+  animation: gradientMove 6s ease-in-out infinite;
 }
-
 .option-btn.selected {
-  background: var(--accent-color);
+  background: var(--accent-gradient);
   color: #000;
-  border-color: var(--accent-color);
+  border-color: #24c96b;
   transform: scale(1.1);
+  animation: gradientMove 2s linear infinite;
 }
-
 .question.mistake {
-  border: 2px solid var(--error-color);
-  background: rgba(244, 67, 54, 0.1);
+  border: 2px solid #f857a6;
+  background: var(--error-gradient);
+  background-size: 200% 200%;
+  background-blend-mode: lighten;
+  color: #fff;
+  animation: gradientMove 2s linear infinite, fadeIn 0.5s;
 }
-
 .question.correct {
-  border: 2px solid var(--success-color);
-  background: rgba(76, 175, 80, 0.1);
+  border: 2px solid #43e97b;
+  background: var(--success-gradient);
+  background-size: 200% 200%;
+  background-blend-mode: lighten;
+  color: #fff;
+  animation: gradientMove 2s linear infinite, fadeIn 0.5s;
 }
 
-/* Controls layout */
+/* Controls */
 .controls {
   display: flex;
   justify-content: center;
@@ -317,7 +285,7 @@ label {
   margin: 1.5rem 0;
 }
 
-/* Modal - Improved accessibility */
+/* Modal */
 .modal {
   position: fixed;
   inset: 0;
@@ -329,43 +297,32 @@ label {
   padding: 1rem;
   backdrop-filter: blur(5px);
 }
-
 .modal-content {
   max-width: min(90vw, 35rem);
   width: 100%;
   padding: 1.5rem;
   text-align: center;
-  animation: scaleIn 0.3s ease;
+  animation: scaleIn 0.3s;
   position: relative;
   max-height: 90vh;
   overflow-y: auto;
 }
-
 .modal-close {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: 0.5rem; right: 0.5rem;
   background: transparent;
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
   color: var(--secondary-color);
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 2.5rem; height: 2.5rem;
+  display: flex; align-items: center; justify-content: center;
 }
-
 .modal-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-  flex-wrap: wrap;
+  display: flex; justify-content: center; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap;
 }
 
-/* Progress bar - Improved visibility */
+/* Progress bar */
 .progress-container {
   background: #333;
   border-radius: var(--border-radius);
@@ -374,92 +331,78 @@ label {
   overflow: hidden;
   position: relative;
 }
-
 .progress-bar {
   height: 100%;
   width: 0%;
-  background: var(--accent-color);
+  background: var(--accent-gradient);
+  background-size: 200% 200%;
+  animation: gradientMove 4s linear infinite;
   border-radius: var(--border-radius);
   text-align: center;
   font-size: 0.85rem;
   color: #000;
   font-weight: bold;
-  transition: width 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: width 0.3s;
+  display: flex; align-items: center; justify-content: center;
 }
 
-/* Stats - Improved layout */
+/* Stats */
 .stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
   gap: 1rem;
   margin: 1.5rem 0;
 }
-
-.stat-item {
-  text-align: center;
-  padding: 1rem;
-}
-
+.stat-item { text-align: center; padding: 1rem;}
 .stat-value {
   font-size: 1.75rem;
-  color: var(--primary-color);
+  background: var(--accent-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
   font-weight: bold;
   margin: 0.5rem 0;
+  animation: gradientMove 8s linear infinite;
 }
 
-/* Subject grid - Consistent heights */
+/* Subject grid */
 .subject-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
   gap: 1.25rem;
   margin: 2rem 0;
 }
-
 .subject-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: flex; flex-direction: column; align-items: center;
   padding: 1.5rem 1rem;
-  cursor: pointer;
-  min-height: 9rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  position: relative;
-  overflow: hidden;
+  cursor: pointer; min-height: 9rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative; overflow: hidden;
+  background: var(--dark-card);
+  color: var(--dark-text-color);
 }
-
 .subject-card::after {
   content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: var(--accent-color);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.3s ease;
+  position: absolute; bottom: 0; left: 0;
+  width: 100%; height: 4px;
+  background: var(--accent-gradient);
+  background-size: 200% 200%;
+  animation: gradientMove 3s linear infinite;
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.3s;
 }
-
 .subject-card:hover::after,
 .subject-card:focus-visible::after {
   transform: scaleX(1);
 }
-
 .subject-card:hover,
 .subject-card:focus-visible {
-  transform: translateY(-0.25rem);
-  box-shadow: 0 0.5rem 1.25rem rgba(138, 201, 38, 0.3);
+  transform: translateY(-0.25rem) scale(1.05);
+  box-shadow: 0 0.5rem 1.25rem #24c96b44;
   outline: none;
 }
-
-.subject-icon {
-  font-size: 2rem;
-  margin-bottom: 0.75rem;
-}
-
+.subject-icon { font-size: 2rem; margin-bottom: 0.75rem; }
 .subject-card h3 {
   margin: 0;
   font-size: 1.1rem;
@@ -475,39 +418,29 @@ label {
   gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
+.filter-controls select, .filter-controls input { width: 100%; min-width: auto; }
 
-.filter-controls select,
-.filter-controls input {
-  width: 100%;
-  min-width: auto;
-}
-
-/* Theme toggle - Larger and more accessible */
+/* Theme toggle */
 .theme-toggle {
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
-  background: var(--accent-color);
-  color: #000;
+  background: var(--accent-gradient);
+  background-size: 200% 200%;
+  color: #fff;
   width: 3.5rem;
   height: 3.5rem;
   border-radius: 50%;
   font-size: 1.5rem;
-  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0.25rem 0.75rem #24c96b33;
   z-index: 100;
   border: none;
+  animation: gradientMove 3s linear infinite;
 }
 
-/* Instructions list */
-.instructions ul {
-  padding-left: 1.25rem;
-  font-size: 1rem;
-  line-height: 1.7;
-}
-
-.instructions li {
-  margin-bottom: 0.5rem;
-}
+/* Instructions */
+.instructions ul { padding-left: 1.25rem; font-size: 1rem; line-height: 1.7;}
+.instructions li { margin-bottom: 0.5rem; }
 
 /* History preview */
 .history-scroll {
@@ -517,39 +450,30 @@ label {
   padding: 0.75rem 0;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: var(--accent-color) var(--dark-card);
+  scrollbar-color: #24c96b var(--dark-card);
 }
-
-.history-scroll::-webkit-scrollbar {
-  height: 6px;
-}
-
-.history-scroll::-webkit-scrollbar-track {
-  background: var(--dark-card);
-}
-
+.history-scroll::-webkit-scrollbar { height: 6px;}
+.history-scroll::-webkit-scrollbar-track { background: var(--dark-card);}
 .history-scroll::-webkit-scrollbar-thumb {
-  background: var(--accent-color);
+  background: #24c96b;
   border-radius: 3px;
 }
-
 .history-item {
   min-width: 14rem;
   background: #333;
   border-radius: var(--border-radius);
   padding: 1rem;
   flex-shrink: 0;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s;
+  background: var(--option-gradient);
+  background-size: 200% 200%;
+  animation: gradientMove 9s linear infinite;
+  color: #fff;
 }
-
-.history-item:hover {
-  transform: translateY(-3px);
-}
+.history-item:hover { transform: translateY(-3px); }
 
 /* Analysis container */
-.analysis-container {
-  margin: 2rem 0;
-}
+.analysis-container { margin: 2rem 0; }
 
 /* Chart styles */
 .chart-container {
@@ -559,10 +483,8 @@ label {
   height: 18rem;
   padding: 1.5rem 0;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
   position: relative;
 }
-
 .bar-container {
   display: flex;
   flex-direction: column;
@@ -571,12 +493,11 @@ label {
   height: 100%;
   min-width: 3rem;
 }
-
 .bar {
   width: 2rem;
   margin: 0 auto;
   position: relative;
-  transition: height 0.5s ease;
+  transition: height 0.5s;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -584,8 +505,10 @@ label {
   font-weight: bold;
   font-size: 0.75rem;
   border-radius: 0.25rem 0.25rem 0 0;
+  background: var(--accent-gradient);
+  background-size: 200% 200%;
+  animation: gradientMove 3s linear infinite;
 }
-
 .chart-label {
   margin-top: 0.5rem;
   text-align: center;
@@ -607,37 +530,35 @@ label {
   margin-bottom: 1.5rem;
   justify-content: center;
 }
-
 .time-filter button {
-  background: #333;
+  background: var(--secondary-gradient);
   border: none;
   border-radius: var(--border-radius);
   padding: 0.75rem 1rem;
-  color: var(--primary-color);
+  color: #fff;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
   min-width: 5rem;
+  background-size: 200% 200%;
+  animation: gradientMove 7s linear infinite;
 }
-
 .time-filter button.active {
-  background: var(--accent-color);
+  background: var(--accent-gradient);
   color: #000;
   font-weight: bold;
+  animation: gradientMove 2.5s linear infinite;
 }
 
-/* Form validation styles */
+/* Form validation */
 .error-message {
-  color: var(--error-color);
+  color: #f857a6;
   font-size: 0.85rem;
   margin-top: 0.25rem;
   display: none;
 }
+.input-error { border-color: #f857a6 !important; }
 
-.input-error {
-  border-color: var(--error-color) !important;
-}
-
-/* Footer - Improved layout */
+/* Footer */
 footer {
   background: var(--dark-card);
   color: var(--dark-text-color);
@@ -646,99 +567,173 @@ footer {
   margin-top: 2rem;
   border-top: 1px solid #333;
 }
-
 .footer-email {
-  color: var(--accent-color);
+  background: var(--accent-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
   text-decoration: underline;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: color 0.2s;
+  animation: gradientMove 6s linear infinite;
 }
-
 .footer-email:hover {
-  color: #aad94c;
+  background: linear-gradient(90deg, #b1ff8a 0%, #24c96b 100%);
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-decoration: underline;
 }
 
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 768px) {
-  .container {
-    padding: 1rem;
-    margin: 0.75rem;
-  }
-  
-  #questionContainer {
-    grid-template-columns: 1fr;
-  }
-  
-  .option-btn {
-    width: 2.75rem;
-    height: 2.75rem;
-    font-size: 1rem;
-  }
-  
-  .subject-grid {
-    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
-  }
-  
-  .filter-controls {
-    grid-template-columns: 1fr;
-  }
-  
-  .modal-content {
-    padding: 1.5rem 1rem;
-  }
+  .container { padding: 1rem; margin: 0.75rem;}
+  #questionContainer { grid-template-columns: 1fr;}
+  .option-btn { width: 2.75rem; height: 2.75rem; font-size: 1rem;}
+  .subject-grid { grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));}
+  .filter-controls { grid-template-columns: 1fr;}
+  .modal-content { padding: 1.5rem 1rem;}
 }
-
 @media (max-width: 480px) {
-  .btn, .option-btn {
-    padding: 0.75rem;
-    font-size: 0.9rem;
-  }
-  
-  .subject-card {
-    min-height: 8rem;
-    padding: 1rem 0.75rem;
-  }
-  
-  .history-item {
-    min-width: 12rem;
-  }
-  
-  .chart-label {
-    writing-mode: horizontal-tb;
-    transform: none;
-    height: auto;
-    width: 3rem;
-    text-align: center;
-  }
-  
-  footer {
-    font-size: 0.85rem;
-    padding: 1rem 0.75rem;
-  }
+  .btn, .option-btn { padding: 0.75rem; font-size: 0.9rem;}
+  .subject-card { min-height: 8rem; padding: 1rem 0.75rem;}
+  .history-item { min-width: 12rem;}
+  footer { font-size: 0.85rem; padding: 1rem 0.75rem;}
 }
 
-/* Keyboard navigation focus styles */
+/* Keyboard navigation focus */
 button:focus-visible,
 input:focus-visible,
 select:focus-visible {
-  outline: 2px solid var(--accent-color);
+  outline: 2px solid #24c96b;
   outline-offset: 2px;
 }
 
 /* Print styles */
 @media print {
-  .container {
-    background: white;
-    color: black;
-    box-shadow: none;
-  }
-  
-  .no-print {
-    display: none !important;
-  }
+  .container { background: white; color: black; box-shadow: none;}
+  .no-print { display: none !important;}
 }
+
+/* Light theme variables */
+body:not(.dark-mode) {
+  --primary-color: #222;
+  --secondary-color: #555;
+  --dark-bg: #f5f7fa;
+  --dark-card: #fff;
+  --dark-text-color: #222;
+  --accent-gradient: linear-gradient(90deg, #b1ff8a 0%, #24c96b 100%);
+  --success-gradient: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+  --error-gradient: linear-gradient(90deg, #ff5858 0%, #f857a6 100%);
+  --warning-gradient: linear-gradient(90deg, #ffb347 0%, #ff774e 100%);
+  --option-gradient: linear-gradient(120deg, #5ee7df 0%, #3a8dde 100%);
+  --secondary-gradient: linear-gradient(90deg, #eee 0%, #ddd 100%);
+}
+/* Light theme overrides */
+body:not(.dark-mode) {
+  background: var(--dark-bg);
+  color: var(--dark-text-color);
+}
+body:not(.dark-mode) .container,
+body:not(.dark-mode) .question,
+body:not(.dark-mode) .subject-card,
+body:not(.dark-mode) .modal-content,
+body:not(.dark-mode) .stat-item,
+body:not(.dark-mode) .instructions,
+body:not(.dark-mode) .history-preview,
+body:not(.dark-mode) .analysis-container {
+  background: var(--dark-card);
+  color: var(--dark-text-color);
+  box-shadow: 0 0.25rem 0.9375rem rgba(0,0,0,0.07);
+}
+body:not(.dark-mode) .btn,
+body:not(.dark-mode) .theme-toggle {
+  background: var(--accent-gradient);
+  color: #fff;
+}
+body:not(.dark-mode) .btn-secondary {
+  background: var(--secondary-gradient);
+  color: #555;
+}
+body:not(.dark-mode) .btn-success {
+  background: var(--success-gradient);
+  color: #fff;
+}
+body:not(.dark-mode) .btn-danger {
+  background: var(--error-gradient);
+  color: #fff;
+}
+body:not(.dark-mode) .btn-warning {
+  background: var(--warning-gradient);
+  color: #fff;
+}
+body:not(.dark-mode) .progress-container {
+  background: #f0f0f0;
+}
+body:not(.dark-mode) .progress-bar {
+  background: var(--accent-gradient);
+  color: #fff;
+}
+body:not(.dark-mode) .question {
+  border: 1px solid #ddd;
+}
+body:not(.dark-mode) .option-btn {
+  background: var(--option-gradient);
+  color: #222;
+  border: 2px solid #bbb;
+}
+body:not(.dark-mode) .option-btn.selected {
+  background: var(--accent-gradient);
+  color: #fff;
+  border-color: #24c96b;
+}
+body:not(.dark-mode) .question.mistake {
+  border: 2px solid #f857a6;
+  background: var(--error-gradient);
+  color: #fff;
+}
+body:not(.dark-mode) .question.correct {
+  border: 2px solid #43e97b;
+  background: var(--success-gradient);
+  color: #fff;
+}
+body:not(.dark-mode) .modal {
+  background: rgba(240, 240, 240, 0.9);
+  backdrop-filter: blur(3px);
+}
+body:not(.dark-mode) .modal-content {
+  background: #fff;
+  color: #222;
+}
+body:not(.dark-mode) .footer {
+  background: #f2f3f7;
+  color: #555;
+  border-top: 1px solid #ddd;
+}
+body:not(.dark-mode) .footer-email {
+  background: var(--accent-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+body:not(.dark-mode) .footer-email:hover {
+  background: linear-gradient(90deg, #b1ff8a 0%, #24c96b 100%);
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+body:not(.dark-mode) .history-scroll { background: #f9f9f9;}
+body:not(.dark-mode) .history-item {
+  background: var(--option-gradient);
+  color: #fff;
+  border: 1px solid #e0e0e0;
+}
+
+/* Theme toggle button */
+.theme-toggle { transition: background 0.2s, color 0.2s;}
 </style>
-</head>
 <body>
 
 <div class="container">
@@ -868,7 +863,28 @@ select:focus-visible {
       <label for="timePerQuestion">Time per Question (seconds):</label>
       <input type="number" id="timePerQuestion" min="10" value="60" />
     </div>
-    
+    <div class="form-group">
+  <label for="optionStyle">Option Style:</label>
+  <select id="optionStyle">
+    <option value="bengali">ক, খ, গ, ঘ, ঙ, চ (Bengali Alphabetic)</option>
+    <option value="en-lower">a, b, c, d, e, f (English lower)</option>
+    <option value="en-upper">A, B, C, D, E, F (English upper)</option>
+    <option value="roman-lower">i, ii, iii, iv, v, vi (Roman lower)</option>
+    <option value="roman-upper">I, II, III, IV, V, VI (Roman upper)</option>
+    <option value="numeric">1, 2, 3, 4, 5, 6 (Numeric)</option>
+  </select>
+</div>
+<div class="form-group">
+  <label for="optionCount">Number of Options per Question:</label>
+  <select id="optionCount">
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4" selected>4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+  </select>
+</div>
+
     <div class="controls">
       <button class="btn" onclick="startTest()">Start Test</button>
       <button class="btn btn-secondary" onclick="showHistory()">View History</button>
@@ -981,8 +997,22 @@ const state = {
   testTitle: '',
   testSubject: '',
   testStarted: false,
-  currentQuestionSet: []
+  currentQuestionSet: [],
+  optionStyle: 'bengali',
+  optionCount: 4
 };
+
+// Warn the user before reload if in test or answer input stage
+window.addEventListener('beforeunload', function (e) {
+  if (
+    state.testStarted ||
+    (elements.questionContainer && elements.questionContainer.innerHTML.includes('Correct Answer for Question'))
+  ) {
+    const confirmationMessage = 'Changes might not save.';
+    (e || window.event).returnValue = confirmationMessage;
+    return confirmationMessage;
+  }
+});
 
 // DOM elements
 const elements = {
@@ -999,6 +1029,19 @@ const elements = {
   historyScroll: document.getElementById('historyScroll'),
   chartContainer: document.getElementById('chartContainer')
 };
+
+// Option label generator utility
+function getOptionLabels(style, count) {
+  const sets = {
+    bengali: ['ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ'],
+    'en-lower': ['a', 'b', 'c', 'd', 'e', 'f'],
+    'en-upper': ['A', 'B', 'C', 'D', 'E', 'F'],
+    'roman-lower': ['i', 'ii', 'iii', 'iv', 'v', 'vi'],
+    'roman-upper': ['I', 'II', 'III', 'IV', 'V', 'VI'],
+    numeric: ['1', '2', '3', '4', '5', '6']
+  };
+  return sets[style].slice(0, count);
+}
 
 // Keyboard accessible subject selection
 function handleSubjectKeyDown(event, subject) {
@@ -1020,6 +1063,8 @@ function init() {
         state.testSubject = testData.testState.testSubject;
         state.currentQuestionSet = testData.testState.currentQuestionSet;
         state.totalQuestions = testData.testState.totalQuestions;
+        state.optionStyle = testData.testState.optionStyle || 'bengali';
+        state.optionCount = testData.testState.optionCount || 4;
         continueTest();
       },
       () => {
@@ -1037,7 +1082,6 @@ function init() {
   // Initialize dark mode if previously set
   if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark-mode');
-    // theme toggle is not in DOM initially, so handle below
   }
   
   // Initialize email copy functionality
@@ -1066,14 +1110,15 @@ function init() {
 }
 
 function continueTest() {
-  // Setup UI to continue the test
   elements.setupForm.style.display = 'none';
   elements.timer.style.display = 'block';
   elements.testControls.style.display = 'flex';
   elements.progressContainer.style.display = 'block';
   elements.questionContainer.innerHTML = '';
-  
-  // Recreate question elements with saved answers
+
+  // Option style/count from state (for unfinished test)
+  const optionLabels = getOptionLabels(state.optionStyle, state.optionCount);
+
   state.currentQuestionSet.forEach(qNum => {
     const div = document.createElement('div');
     div.className = 'question';
@@ -1081,10 +1126,9 @@ function continueTest() {
     div.innerHTML = `
       <div class="question-number">Question ${qNum}</div>
       <div class="options-container">
-        <button class="option-btn ${state.answers[qNum] === 'ক' ? 'selected' : ''}" onclick="selectAnswer(${qNum}, 'ক', this)">ক</button>
-        <button class="option-btn ${state.answers[qNum] === 'খ' ? 'selected' : ''}" onclick="selectAnswer(${qNum}, 'খ', this)">খ</button>
-        <button class="option-btn ${state.answers[qNum] === 'গ' ? 'selected' : ''}" onclick="selectAnswer(${qNum}, 'গ', this)">গ</button>
-        <button class="option-btn ${state.answers[qNum] === 'ঘ' ? 'selected' : ''}" onclick="selectAnswer(${qNum}, 'ঘ', this)">ঘ</button>
+        ${optionLabels.map(opt =>
+          `<button class="option-btn ${state.answers[qNum] === opt ? 'selected' : ''}" onclick="selectAnswer(${qNum}, '${opt}', this)">${opt}</button>`
+        ).join('')}
       </div>
     `;
     elements.questionContainer.appendChild(div);
@@ -1120,15 +1164,12 @@ function startHistoryScroll() {
 // Load recent history for preview
 function loadRecentHistory() {
   let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
-  history = history.slice(0, 5); // Get last 5 tests
-  
+  history = history.slice(0, 5);
   elements.historyScroll.innerHTML = '';
-  
   if (history.length === 0) {
     elements.historyScroll.innerHTML = '<p>No recent tests found.</p>';
     return;
   }
-  
   history.forEach(test => {
     const testDiv = document.createElement('div');
     testDiv.className = 'history-item';
@@ -1146,8 +1187,6 @@ function loadRecentHistory() {
 // Updated renderSubjectAnalysis function
 function renderSubjectAnalysis(filter = 'all') {
   let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
-  
-  // Filter by time if needed
   const now = new Date();
   if (filter === 'year') {
     history = history.filter(test => {
@@ -1167,8 +1206,6 @@ function renderSubjectAnalysis(filter = 'all') {
       return testDate >= oneWeekAgo;
     });
   }
-  
-  // Group by subject and calculate average scores
   const subjects = [
     'English 1st Paper', 'English 2nd Paper',
     'Bengali 1st Paper', 'Bengali 2nd Paper',
@@ -1178,7 +1215,6 @@ function renderSubjectAnalysis(filter = 'all') {
     'Chemistry 1st Paper', 'Chemistry 2nd Paper',
     'Information and Communication Technology'
   ];
-  
   const subjectData = {};
   subjects.forEach(subject => {
     const subjectTests = history.filter(test => test.subject === subject && test.score !== null);
@@ -1189,21 +1225,15 @@ function renderSubjectAnalysis(filter = 'all') {
       subjectData[subject] = 0;
     }
   });
-  
-  // Render chart
   elements.chartContainer.innerHTML = '';
-  
   const maxScore = Math.max(...Object.values(subjectData), 100) || 100;
   const chartHeight = 250;
-  
   subjects.forEach(subject => {
     const score = subjectData[subject] || 0;
     const barHeight = (score / maxScore) * chartHeight;
-    
     const barContainer = document.createElement('div');
     barContainer.className = 'bar-container';
     barContainer.style.height = `${chartHeight}px`;
-    
     const bar = document.createElement('div');
     bar.className = 'bar';
     bar.style.height = `${barHeight}px`;
@@ -1212,11 +1242,12 @@ function renderSubjectAnalysis(filter = 'all') {
     if (score > 0) {
       bar.textContent = score;
     }
-    
     const label = document.createElement('div');
     label.className = 'chart-label';
-    label.textContent = subject.split(' ').slice(0, 2).join(' '); // Show subject and paper number
-    
+    label.textContent =
+      subject === 'Information and Communication Technology'
+        ? 'ICT'
+        : subject.split(' ').slice(0, 2).join(' ');
     barContainer.appendChild(bar);
     barContainer.appendChild(label);
     elements.chartContainer.appendChild(barContainer);
@@ -1243,12 +1274,10 @@ function getSubjectColor(subject) {
 }
 
 function filterAnalysis(filter) {
-  // Update active button
   document.querySelectorAll('.time-filter button').forEach(btn => {
     btn.classList.remove('active');
   });
   event.target.classList.add('active');
-  
   renderSubjectAnalysis(filter);
 }
 
@@ -1273,12 +1302,10 @@ function goBackToHome() {
 }
 
 function resetToHome() {
-  // Clear any existing timer
   if (state.timer) {
     clearInterval(state.timer);
     state.timer = null;
   }
-
   elements.homeScreen.style.display = 'block';
   elements.setupForm.style.display = 'none';
   elements.timer.style.display = 'none';
@@ -1286,44 +1313,41 @@ function resetToHome() {
   elements.progressContainer.style.display = 'none';
   elements.questionContainer.innerHTML = '';
   elements.resultStats.style.display = 'none';
-  
-  // Reset test state
   state.testStarted = false;
   state.answers = {};
   state.correctAnswers = {};
   state.currentQuestionSet = [];
+  state.optionStyle = 'bengali';
+  state.optionCount = 4;
   localStorage.removeItem('currentTestData');
 }
 
 function startTest() {
-  // Clear any previous test data from storage
   localStorage.removeItem('currentTestData');
-  
-  // Reset previous answers
   state.answers = {};
   state.correctAnswers = {};
-  
-  // Validate inputs
-  state.testTitle = document.getElementById('testTitle').value.trim();
-  
-  // Make sure controls are visible
-  elements.testControls.style.display = 'flex';
-  elements.testControls.innerHTML = `
-    <button class="btn btn-success" onclick="submitAnswers()">Submit Answers</button>
-    <button class="btn btn-danger" onclick="cancelTest()">Cancel Test</button>
-    <button class="btn btn-secondary" onclick="saveForLater()">Save for Later</button>
-  `;
 
+  state.testTitle = document.getElementById('testTitle').value.trim();
   const start = parseInt(document.getElementById('startNum').value);
   const end = parseInt(document.getElementById('endNum').value);
   const timePerQuestion = parseInt(document.getElementById('timePerQuestion').value) || 60;
-  
-  if (isNaN(start) || isNaN(end) || end < start) {
-    showModal('Please enter valid serial numbers!');
-    return;
-  }
+  // Get new fields
+  state.optionStyle = document.getElementById('optionStyle').value;
+  state.optionCount = parseInt(document.getElementById('optionCount').value, 10);
 
-  // Initialize test state
+elements.testControls.style.display = 'none';
+if (isNaN(start) || isNaN(end) || end < start) {
+  showModal('Please enter valid serial numbers!');
+  return;
+}
+
+elements.testControls.style.display = 'flex';
+elements.testControls.innerHTML = `
+  <button class="btn btn-success" onclick="submitAnswers()">Submit Answers</button>
+  <button class="btn btn-danger" onclick="cancelTest()">Cancel Test</button>
+  <button class="btn btn-secondary" onclick="saveForLater()">Save for Later</button>
+`;
+
   state.totalQuestions = end - start + 1;
   state.timeLeft = state.totalQuestions * timePerQuestion;
   state.answers = {};
@@ -1331,7 +1355,6 @@ function startTest() {
   state.currentQuestionSet = Array.from({length: end - start + 1}, (_, i) => start + i);
   state.testStarted = true;
 
-  // Update UI
   elements.setupForm.style.display = 'none';
   elements.timer.style.display = 'block';
   elements.testControls.style.display = 'flex';
@@ -1339,7 +1362,8 @@ function startTest() {
   elements.questionContainer.innerHTML = '';
   elements.resultStats.style.display = 'none';
 
-  // Create question elements
+  const optionLabels = getOptionLabels(state.optionStyle, state.optionCount);
+
   state.currentQuestionSet.forEach(qNum => {
     const div = document.createElement('div');
     div.className = 'question';
@@ -1347,10 +1371,9 @@ function startTest() {
     div.innerHTML = `
       <div class="question-number">Question ${qNum}</div>
       <div class="options-container">
-        <button class="option-btn" onclick="selectAnswer(${qNum}, 'ক', this)">ক</button>
-        <button class="option-btn" onclick="selectAnswer(${qNum}, 'খ', this)">খ</button>
-        <button class="option-btn" onclick="selectAnswer(${qNum}, 'গ', this)">গ</button>
-        <button class="option-btn" onclick="selectAnswer(${qNum}, 'ঘ', this)">ঘ</button>
+        ${optionLabels.map(opt =>
+          `<button class="option-btn" onclick="selectAnswer(${qNum}, '${opt}', this)">${opt}</button>`
+        ).join('')}
       </div>
     `;
     elements.questionContainer.appendChild(div);
@@ -1364,19 +1387,14 @@ function startTest() {
 
 function selectAnswer(qNum, ans, btn) {
   state.answers[qNum] = ans;
-  
-  // Save progress to localStorage
   localStorage.setItem('currentTestData', JSON.stringify({
     answers: state.answers,
     testState: state
   }));
-  
-  // Clear previous selection and highlight new one
   const questionDiv = btn.closest('.question');
   const buttons = questionDiv.querySelectorAll('.option-btn');
   buttons.forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
-  
   updateProgress();
 }
 
@@ -1387,7 +1405,6 @@ function updateTimer() {
     submitAnswers();
     return;
   }
-  
   const minutes = Math.floor(state.timeLeft / 60);
   const seconds = state.timeLeft % 60;
   elements.timer.innerHTML = `Time Remaining: <span style="color: ${state.timeLeft <= 60 ? 'red' : 'var(--primary-color)'}">${minutes}:${seconds < 10 ? '0' : ''}${seconds}</span>`;
@@ -1404,11 +1421,11 @@ function updateProgress() {
 function submitAnswers() {
   clearInterval(state.timer);
   state.testStarted = false;
-  
+
   showModal('Are you ready to provide the correct answers?', 
     () => {
-      // Show UI for entering correct answers
       elements.questionContainer.innerHTML = '';
+      const optionLabels = getOptionLabels(state.optionStyle, state.optionCount);
       state.currentQuestionSet.forEach(qNum => {
         const div = document.createElement('div');
         div.className = 'question';
@@ -1416,15 +1433,13 @@ function submitAnswers() {
         div.innerHTML = `
           <div class="question-number">Correct Answer for Question ${qNum}</div>
           <div class="options-container">
-            <button class="option-btn" onclick="selectCorrect(${qNum}, 'ক', this)">ক</button>
-            <button class="option-btn" onclick="selectCorrect(${qNum}, 'খ', this)">খ</button>
-            <button class="option-btn" onclick="selectCorrect(${qNum}, 'গ', this)">গ</button>
-            <button class="option-btn" onclick="selectCorrect(${qNum}, 'ঘ', this)">ঘ</button>
+            ${optionLabels.map(opt =>
+              `<button class="option-btn" onclick="selectCorrect(${qNum}, '${opt}', this)">${opt}</button>`
+            ).join('')}
           </div>
         `;
         elements.questionContainer.appendChild(div);
       });
-      
       elements.testControls.innerHTML = `
         <button class="btn btn-success" onclick="checkAnswers()">Check Answers</button>
         <button class="btn btn-warning" onclick="saveForLater()">Save for Later</button>
@@ -1432,7 +1447,6 @@ function submitAnswers() {
       `;
     },
     () => {
-      // User chose not to provide correct answers
       saveForLater();
     }
   );
@@ -1448,7 +1462,6 @@ function showSubmitButton() {
 
 function selectCorrect(qNum, ans, btn) {
   state.correctAnswers[qNum] = ans;
-  
   const questionDiv = btn.closest('.question');
   const buttons = questionDiv.querySelectorAll('.option-btn');
   buttons.forEach(b => b.classList.remove('selected'));
@@ -1457,12 +1470,10 @@ function selectCorrect(qNum, ans, btn) {
 
 function checkAnswers() {
   let correctCount = 0;
-  
   state.currentQuestionSet.forEach(qNum => {
     const questionDiv = document.getElementById(`q-${qNum}`);
     const userAnswer = state.answers[qNum];
     const correctAnswer = state.correctAnswers[qNum];
-    
     if (userAnswer === correctAnswer) {
       correctCount++;
       questionDiv.classList.add('correct');
@@ -1470,21 +1481,16 @@ function checkAnswers() {
       questionDiv.classList.add('mistake');
     }
   });
-  
-  // Calculate and display results
   const score = Math.round((correctCount / state.totalQuestions) * 100);
   document.getElementById('totalQuestions').textContent = state.totalQuestions;
   document.getElementById('correctAnswers').textContent = correctCount;
   document.getElementById('scorePercentage').textContent = `${score}%`;
-  
   elements.resultStats.style.display = 'block';
   elements.testControls.style.display = 'none';
   elements.timer.style.display = 'none';
   elements.progressContainer.style.display = 'none';
-  
   saveToHistory('completed', state.answers, state.correctAnswers, state.totalQuestions, score);
   localStorage.removeItem('currentTestData');
-  
   showModal(`Your score: ${correctCount} / ${state.totalQuestions} (${score}%)`);
 }
 
@@ -1516,7 +1522,9 @@ function saveToHistory(status, answers, corrects, total, score) {
     correctAnswers: corrects,
     total: total,
     score: score,
-    questionSet: state.currentQuestionSet
+    questionSet: state.currentQuestionSet,
+    optionStyle: state.optionStyle,
+    optionCount: state.optionCount
   });
   localStorage.setItem('omrHistory', JSON.stringify(history));
   loadRecentHistory();
@@ -1525,41 +1533,28 @@ function saveToHistory(status, answers, corrects, total, score) {
 
 function showHistory() {
   const history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
-  const filteredHistory = history; // No filters here
-  displayHistory(filteredHistory);
+  displayHistory(history);
   document.getElementById('historyModal').style.display = 'flex';
 }
 
-// Updated filterHistory function
 function filterHistory() {
   const subjectFilter = document.getElementById('filterSubject').value;
   const statusFilter = document.getElementById('filterStatus').value;
   const sortFilter = document.getElementById('filterSort').value;
   const searchTerm = document.getElementById('searchTitle').value.toLowerCase();
-  
   let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
-  
-  // Apply filters
   let filteredHistory = history.filter(test => {
-    // Subject filter
     const subjectMatch = subjectFilter === 'all' || test.subject === subjectFilter;
-    
-    // Status filter
     let statusMatch = true;
     if (statusFilter === 'completed') {
       statusMatch = test.status === 'completed';
     } else if (statusFilter === 'pending') {
       statusMatch = test.status === 'pending';
     }
-    
-    // Search filter
     const searchMatch = test.title.toLowerCase().includes(searchTerm) || 
                        test.subject.toLowerCase().includes(searchTerm);
-    
     return subjectMatch && statusMatch && searchMatch;
   });
-  
-  // Apply sorting
   switch(sortFilter) {
     case 'newest':
       filteredHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -1569,7 +1564,6 @@ function filterHistory() {
       break;
     case 'highest':
       filteredHistory.sort((a, b) => {
-        // Handle cases where score might be null
         const aScore = a.score !== null ? a.score : -1;
         const bScore = b.score !== null ? b.score : -1;
         return bScore - aScore;
@@ -1577,21 +1571,18 @@ function filterHistory() {
       break;
     case 'lowest':
       filteredHistory.sort((a, b) => {
-        // Handle cases where score might be null
         const aScore = a.score !== null ? a.score : Infinity;
         const bScore = b.score !== null ? b.score : Infinity;
         return aScore - bScore;
       });
       break;
   }
-  
   displayHistory(filteredHistory);
 }
 
 function displayHistory(history) {
   const historyList = document.getElementById('historyList');
   historyList.innerHTML = '';
-  
   if (history.length === 0) {
     historyList.innerHTML = '<p>No matching tests found.</p>';
   } else {
@@ -1600,11 +1591,9 @@ function displayHistory(history) {
       testDiv.style.padding = '10px';
       testDiv.style.borderBottom = '1px solid #444';
       testDiv.style.cursor = 'pointer';
-      
       let statusColor = '#6c757d';
       if (test.status === 'completed') statusColor = 'var(--success-color)';
       else if (test.status === 'pending') statusColor = 'var(--warning-color)';
-      
       testDiv.innerHTML = `
         <div style="font-weight: bold;">${test.title}</div>
         <div style="font-size: 0.9em; color: #aaa;">${test.subject} • ${test.date}</div>
@@ -1613,7 +1602,6 @@ function displayHistory(history) {
           ${test.score !== null ? `<span style="font-weight: bold;">Score: ${test.score}%</span>` : ''}
         </div>
       `;
-      
       testDiv.addEventListener('click', () => viewTestDetails(test));
       historyList.appendChild(testDiv);
     });
@@ -1629,7 +1617,6 @@ function viewTestDetails(test) {
     ${test.score !== null ? `<p><strong>Score:</strong> ${test.score}%</p>` : ''}
     <p><strong>Questions:</strong> ${test.questionSet[0]} to ${test.questionSet[test.questionSet.length - 1]}</p>
   `;
-  
   if (test.status === 'completed') {
     content += `<div style="max-height: 300px; overflow-y: auto; margin-top: 15px; border-top: 1px solid #444; padding-top: 10px;">
       <h4>Question Details</h4>
@@ -1639,12 +1626,10 @@ function viewTestDetails(test) {
           <th style="padding: 8px; text-align: left;">Your Answer</th>
           <th style="padding: 8px; text-align: left;">Correct Answer</th>
         </tr>`;
-    
     test.questionSet.forEach(qNum => {
       const userAns = test.answers[qNum] || 'Not answered';
       const correctAns = test.correctAnswers[qNum] || '-';
       const isCorrect = userAns === correctAns;
-      
       content += `
         <tr style="border-bottom: 1px solid #444; background: ${isCorrect ? '#2a3a2a' : '#442a2a'}">
           <td style="padding: 8px;">${qNum}</td>
@@ -1653,39 +1638,118 @@ function viewTestDetails(test) {
         </tr>
       `;
     });
-    
     content += `</table></div>`;
   }
-  
+  if (test.status === 'pending') {
+    content += `
+      <div class="modal-buttons">
+        <button class="btn btn-success" onclick="resumeCorrectAnswer('${test.title.replace(/'/g,"\\'")}')">Provide Correct Answers</button>
+      </div>
+    `;
+  }
   showModal(content);
   closeHistoryModal();
+}
+
+// Resuming correct answer entry for a pending test
+function resumeCorrectAnswer(title) {
+  let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
+  const test = history.find(t => t.title === title && t.status === 'pending');
+  if (!test) {
+    showModal('Could not find the pending test.');
+    return;
+  }
+  state.testTitle = test.title;
+  state.testSubject = test.subject;
+  state.currentQuestionSet = test.questionSet;
+  state.totalQuestions = test.total;
+  state.answers = test.answers;
+  state.correctAnswers = {};
+  state.optionStyle = test.optionStyle || 'bengali';
+  state.optionCount = test.optionCount || 4;
+  document.getElementById('modal').style.display = 'none';
+  document.getElementById('historyModal').style.display = 'none';
+  elements.homeScreen.style.display = 'none';
+  elements.setupForm.style.display = 'none';
+  elements.resultStats.style.display = 'none';
+  elements.timer.style.display = 'none';
+  elements.progressContainer.style.display = 'none';
+  elements.testControls.style.display = 'flex';
+  elements.questionContainer.innerHTML = '';
+  const optionLabels = getOptionLabels(state.optionStyle, state.optionCount);
+  state.currentQuestionSet.forEach(qNum => {
+    const div = document.createElement('div');
+    div.className = 'question';
+    div.id = `q-${qNum}`;
+    div.innerHTML = `
+      <div class="question-number">Correct Answer for Question ${qNum}</div>
+      <div class="options-container">
+        ${optionLabels.map(opt =>
+          `<button class="option-btn" onclick="selectCorrect(${qNum}, '${opt}', this)">${opt}</button>`
+        ).join('')}
+      </div>
+    `;
+    elements.questionContainer.appendChild(div);
+  });
+  elements.testControls.innerHTML = `
+    <button class="btn btn-success" onclick="checkAnswersFromPending('${test.title.replace(/'/g,"\\'")}')">Check Answers</button>
+    <button class="btn btn-secondary" onclick="goBackToHome()">Cancel</button>
+  `;
+}
+
+function checkAnswersFromPending(title) {
+  let correctCount = 0;
+  state.currentQuestionSet.forEach(qNum => {
+    const questionDiv = document.getElementById(`q-${qNum}`);
+    const userAnswer = state.answers[qNum];
+    const correctAnswer = state.correctAnswers[qNum];
+    if (userAnswer === correctAnswer) {
+      correctCount++;
+      questionDiv.classList.add('correct');
+    } else {
+      questionDiv.classList.add('mistake');
+    }
+  });
+  const score = Math.round((correctCount / state.totalQuestions) * 100);
+  document.getElementById('totalQuestions').textContent = state.totalQuestions;
+  document.getElementById('correctAnswers').textContent = correctCount;
+  document.getElementById('scorePercentage').textContent = `${score}%`;
+  elements.resultStats.style.display = 'block';
+  elements.testControls.style.display = 'none';
+  elements.timer.style.display = 'none';
+  elements.progressContainer.style.display = 'none';
+  // Update history: mark as completed, store correct answers, score
+  let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
+  const testIdx = history.findIndex(t => t.title === title && t.status === 'pending');
+  if (testIdx > -1) {
+    history[testIdx].correctAnswers = state.correctAnswers;
+    history[testIdx].score = score;
+    history[testIdx].status = 'completed';
+    localStorage.setItem('omrHistory', JSON.stringify(history));
+  }
+  showModal(`Your score: ${correctCount} / ${state.totalQuestions} (${score}%)`);
+  loadRecentHistory();
+  renderSubjectAnalysis();
 }
 
 function closeHistoryModal() {
   document.getElementById('historyModal').style.display = 'none';
 }
 
-// Modal functions
 function showModal(message, onConfirm, onCancel) {
   const modal = document.getElementById('modal');
   const content = document.getElementById('modalContent');
-  
   content.innerHTML = `<p>${message}</p>`;
-  
   if (onConfirm || onCancel) {
     const buttons = document.createElement('div');
     buttons.className = 'modal-buttons';
-    
     if (onConfirm) {
       buttons.innerHTML += `<button class="btn" onclick="closeModal(true)">Yes</button>`;
     }
     if (onCancel) {
       buttons.innerHTML += `<button class="btn btn-secondary" onclick="closeModal(false)">No</button>`;
     }
-    
     content.appendChild(buttons);
-    
-    // Store callbacks as data attributes
     modal.dataset.onConfirm = onConfirm ? onConfirm.toString() : '';
     modal.dataset.onCancel = onCancel ? onCancel.toString() : '';
   } else {
@@ -1693,14 +1757,12 @@ function showModal(message, onConfirm, onCancel) {
       <button class="btn" onclick="closeModal()">OK</button>
     </div>`;
   }
-  
   modal.style.display = 'flex';
 }
 
 function closeModal(confirmed) {
   const modal = document.getElementById('modal');
   modal.style.display = 'none';
-  
   if (confirmed === true && modal.dataset.onConfirm) {
     eval('(' + modal.dataset.onConfirm + ')')();
   } else if (confirmed === false && modal.dataset.onCancel) {
@@ -1715,7 +1777,6 @@ function toggleTheme() {
   document.getElementById('themeToggle').textContent = isDark ? '🌞' : '🌓';
 }
 
-// Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
