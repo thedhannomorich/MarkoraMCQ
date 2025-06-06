@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -182,18 +183,22 @@ label { font-weight: 700; margin-bottom: 0.5rem; display: block; font-size: 1rem
 
 /* Timer */
 #timer {
-  position: fixed;
-  top: 1.25rem;
-  right: 1.25rem;
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  margin: 0 auto 1rem auto;
   background: #2c2c2c;
   color: var(--primary-color);
   padding: 0.75rem 1rem;
   border-radius: var(--border-radius);
   font-weight: 700;
   font-size: 1rem;
-  z-index: 100;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  z-index: 50;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  text-align: center;
 }
+
 #timer.warning {
   color: #ffb347;
   animation: pulse 1s infinite;
@@ -738,31 +743,13 @@ body:not(.dark-mode) .history-item {
 
 <div class="container">
   <div id="homeScreen" class="home-container">
-    <h1 align = "center">Gravithon</h1>
-    <p>Practice and improve your OMR sheet filling skills with this interactive system. It is completely free.</p>
-    
-    <div class="instructions">
-      <h3>How to Use:</h3>
-<ul>
-  <li>Select a subject from the list below.</li>
-  <li>Enter the test details, including the title, question range, and time allotted per question.</li>
-  <li>Obtain a physical copy of the question paper.</li>
-  <li>Answer the questions by selecting one of the options (ক, খ, গ, ঘ).</li>
-  <li>Submit your answers using the solution bank provided with the material once you have completed the test.</li>
-  <li>Enter the correct answers to calculate your score.</li>
-  <li>Review your history to monitor your progress over time.</li>
-</ul>
-
-<h3>Tips:</h3>
-<ul>
-  <li>Practice regularly to enhance your speed and accuracy.</li>
-  <li>Begin with more time per question, then gradually reduce it as you improve.</li>
-  <li>Analyze mistakes recorded in your history to avoid repeating them.</li>
-  <li>This tool is particularly beneficial for HSC candidates and admission test aspirants.</li>
-</ul>
+    <h1 align="center">Gravithon</h1>
+    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+      <button class="btn btn-secondary" onclick="toggleTheme()" style="border-radius: 5px; padding: 8px 16px;">🌓 Dark Mode</button>
+      <button class="btn btn-secondary" onclick="showHelpModal()" style="border-radius: 5px; padding: 8px 16px;">❓ Help</button>
     </div>
     
-    <h3>Select Subject:</h3>
+    <h3>Subjects</h3>
     <div class="subject-grid">
       <div class="subject-card" tabindex="0" data-subject="English 1st Paper" onclick="selectSubject('English 1st Paper')" onkeydown="handleSubjectKeyDown(event, 'English 1st Paper')">
         <div class="subject-icon">📘</div>
@@ -819,7 +806,7 @@ body:not(.dark-mode) .history-item {
     </div>
     
     <div class="history-preview">
-      <h3>Recent History</h3>
+      <h3>History</h3>
       <div class="history-scroll" id="historyScroll">
         <!-- History items will be added here dynamically -->
       </div>
@@ -827,7 +814,7 @@ body:not(.dark-mode) .history-item {
     </div>
     
     <div class="analysis-container">
-      <h3>Subject Analysis</h3>
+      <h3>Performance Analysis (Subject Based)</h3>
       <div class="time-filter">
         <button class="active" onclick="filterAnalysis('all')">All Time</button>
         <button onclick="filterAnalysis('year')">Yearly</button>
@@ -864,26 +851,26 @@ body:not(.dark-mode) .history-item {
       <input type="number" id="timePerQuestion" min="10" value="60" />
     </div>
     <div class="form-group">
-  <label for="optionStyle">Option Style:</label>
-  <select id="optionStyle">
-    <option value="bengali">ক, খ, গ, ঘ, ঙ, চ (Bengali Alphabetic)</option>
-    <option value="en-lower">a, b, c, d, e, f (English lower)</option>
-    <option value="en-upper">A, B, C, D, E, F (English upper)</option>
-    <option value="roman-lower">i, ii, iii, iv, v, vi (Roman lower)</option>
-    <option value="roman-upper">I, II, III, IV, V, VI (Roman upper)</option>
-    <option value="numeric">1, 2, 3, 4, 5, 6 (Numeric)</option>
-  </select>
-</div>
-<div class="form-group">
-  <label for="optionCount">Number of Options per Question:</label>
-  <select id="optionCount">
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4" selected>4</option>
-    <option value="5">5</option>
-    <option value="6">6</option>
-  </select>
-</div>
+      <label for="optionStyle">Option Style:</label>
+      <select id="optionStyle">
+        <option value="bengali">ক, খ, গ, ঘ, ঙ, চ (Bengali Alphabetic)</option>
+        <option value="en-lower">a, b, c, d, e, f (English lower)</option>
+        <option value="en-upper">A, B, C, D, E, F (English upper)</option>
+        <option value="roman-lower">i, ii, iii, iv, v, vi (Roman lower)</option>
+        <option value="roman-upper">I, II, III, IV, V, VI (Roman upper)</option>
+        <option value="numeric">1, 2, 3, 4, 5, 6 (Numeric)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="optionCount">Number of Options per Question:</label>
+      <select id="optionCount">
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4" selected>4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+      </select>
+    </div>
 
     <div class="controls">
       <button class="btn" onclick="startTest()">Start Test</button>
@@ -938,7 +925,6 @@ body:not(.dark-mode) .history-item {
 <div class="modal" id="historyModal">
   <div class="modal-content">
     <h3>Test History - <span id="historySubjectTitle"></span></h3>
-    
     <div class="filter-controls">
       <select id="filterSubject" onchange="filterHistory()">
         <option value="all">All Subjects</option>
@@ -956,23 +942,19 @@ body:not(.dark-mode) .history-item {
         <option value="Chemistry 2nd Paper">Chemistry 2nd Paper</option>
         <option value="Information and Communication Technology">ICT</option>
       </select>
-      
       <select id="filterStatus" onchange="filterHistory()">
         <option value="all">All Status</option>
         <option value="completed">Completed</option>
         <option value="pending">Pending</option>
       </select>
-      
       <select id="filterSort" onchange="filterHistory()">
         <option value="newest">Newest First</option>
         <option value="oldest">Oldest First</option>
         <option value="highest">Highest Score</option>
         <option value="lowest">Lowest Score</option>
       </select>
-      
       <input type="text" id="searchTitle" placeholder="Search by title" oninput="filterHistory()">
     </div>
-    
     <div id="historyList" style="max-height: 400px; overflow-y: auto;"></div>
     <div class="modal-buttons">
       <button class="btn" onclick="closeHistoryModal()">Close</button>
@@ -981,11 +963,10 @@ body:not(.dark-mode) .history-item {
 </div>
 
 <footer class="footer">
-  Developed by <span class="footer-name"><a href = "https://mail.google.com/mail/u/0/?fs=1&to=thedhannomorich@gmail.com&tf=cm">thedhannomorich</a></span>.
+  Developed by <span class="footer-name"><a href="https://mail.google.com/mail/u/0/?fs=1&to=thedhannomorich@gmail.com&tf=cm">thedhannomorich</a></span>.
   Support the developer by sending feedback at this email: 
   <span class="footer-email" id="copyEmail">thedhannomorich@gmail.com</span>
 </footer>
-
 <script>
 // Application state
 const state = {
@@ -1098,17 +1079,7 @@ function init() {
     });
   });
 
-  // Add theme toggle button
-  if (!document.getElementById('themeToggle')) {
-    const btn = document.createElement('button');
-    btn.className = 'theme-toggle';
-    btn.id = 'themeToggle';
-    btn.type = 'button';
-    btn.title = 'Toggle dark/light theme';
-    btn.innerText = document.body.classList.contains('dark-mode') ? '🌞' : '🌓';
-    btn.onclick = toggleTheme;
-    document.body.appendChild(btn);
-  }
+  // DO NOT add any floating theme toggle button (removed as requested)
 }
 
 function continueTest() {
@@ -1142,7 +1113,7 @@ function continueTest() {
         <button class="btn btn-success" onclick="checkAnswers()">Check Answers</button>
         <button class="btn btn-warning" onclick="saveForLater()">Save for Later</button>
         <button class="btn btn-secondary" onclick="goBackToHome()">Cancel</button>
-        <button class="btn btn-info" onclick="showSubmitButton()">Show Submit Again</button>
+        
       `;
     elements.progressContainer.style.display = 'none';
     elements.timer.style.display = 'none';
@@ -1178,7 +1149,6 @@ function continueTest() {
 }
 
 function startHistoryScroll() {
-  // No scroll if not enough items
   if (!elements.historyScroll) return;
   let scrollPosition = 0;
   function doScroll() {
@@ -1196,7 +1166,13 @@ function startHistoryScroll() {
 }
 
 function loadRecentHistory() {
-  let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
+  let history = [];
+  try {
+    history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
+  } catch {
+    history = [];
+    localStorage.removeItem('omrHistory');
+  }
   history = history.slice(0, 5);
   elements.historyScroll.innerHTML = '';
   if (history.length === 0) {
@@ -1219,7 +1195,6 @@ function loadRecentHistory() {
 
 // Subject Analysis and chart rendering (unchanged)
 function renderSubjectAnalysis(filter = 'all') {
-  // ... (same as before)
   let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
   const now = new Date();
   if (filter === 'year') {
@@ -1326,15 +1301,15 @@ function selectSubject(subject) {
 }
 
 function goBackToHome() {
-  if (state.testStarted || state.phase === 'providing-correct') {
+  // Only show cancel modal if test is in progress or in correct-answer phase
+  if ((state.testStarted || state.phase === 'providing-correct') && elements.questionContainer.innerHTML.trim() !== '') {
     showModal(
       'Are you sure you want to cancel this test? It will be removed from history.',
       () => {
         clearInterval(state.timer);
         removePendingFromHistory();
         resetToHome();
-      },
-      () => { /* do nothing, stay */ }
+      }
     );
   } else {
     resetToHome();
@@ -1342,7 +1317,6 @@ function goBackToHome() {
 }
 
 function resetToHome() {
-  // Clear any existing timer
   if (state.timer) {
     clearInterval(state.timer);
     state.timer = null;
@@ -1366,7 +1340,6 @@ function resetToHome() {
 
 function removePendingFromHistory() {
   let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
-  // Remove the first pending test that matches the current test title & subject (most recent)
   const idx = history.findIndex(
     t => t.status === 'pending' &&
       t.title === state.testTitle &&
@@ -1391,7 +1364,6 @@ function startTest() {
   const start = parseInt(document.getElementById('startNum').value);
   const end = parseInt(document.getElementById('endNum').value);
   const timePerQuestion = parseInt(document.getElementById('timePerQuestion').value) || 60;
-  // Get new fields
   state.optionStyle = (document.getElementById('optionStyle') && document.getElementById('optionStyle').value) || 'bengali';
   state.optionCount = parseInt(document.getElementById('optionCount') && document.getElementById('optionCount').value, 10) || 4;
 
@@ -1519,21 +1491,12 @@ function submitAnswers() {
       elements.timer.style.display = 'none';
     },
     () => {
-      // If user cancels, allow them to save for later or resume test
       showModal("You can save for later or return to the test. Do you want to save for later?",
         () => { saveForLater(); },
         () => { continueTest(); }
       );
     }
   );
-}
-
-function showSubmitButton() {
-  elements.testControls.innerHTML = `
-    <button class="btn btn-success" onclick="submitAnswers()">Submit Answers</button>
-    <button class="btn btn-danger" onclick="cancelTest()">Cancel Test</button>
-    <button class="btn btn-secondary" onclick="saveForLater()">Save for Later</button>
-  `;
 }
 
 function selectCorrect(qNum, ans, btn) {
@@ -1595,7 +1558,6 @@ function cancelTest() {
 
 function saveToHistory(status, answers, corrects, total, score, timeLeft = null, extraState = null, phase = "answering") {
   let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
-  // Remove any existing pending entry for the same title & subject (keep only latest)
   history = history.filter(t => !(t.status === 'pending' && t.title === state.testTitle && t.subject === state.testSubject));
   history.unshift({
     title: state.testTitle,
@@ -1748,7 +1710,6 @@ function viewTestDetails(test) {
   closeHistoryModal();
 }
 
-// Remove a single pending entry by title and subject
 function removeSinglePendingFromHistory(title, subject) {
   let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
   const idx = history.findIndex(t => t.status === 'pending' && t.title === title && t.subject === subject);
@@ -1763,7 +1724,6 @@ function removeSinglePendingFromHistory(title, subject) {
   }
 }
 
-// Resuming a pending test
 function resumePendingTest(date, isCorrectPhase = false) {
   scrollToTop();
   const history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
@@ -1772,7 +1732,6 @@ function resumePendingTest(date, isCorrectPhase = false) {
     showModal('Pending test not found.', () => {}, null);
     return;
   }
-  // Restore state
   state.testTitle = test.title;
   state.testSubject = test.subject;
   state.currentQuestionSet = test.questionSet;
@@ -1784,7 +1743,6 @@ function resumePendingTest(date, isCorrectPhase = false) {
   state.optionStyle = (test.extraState && test.extraState.optionStyle) || 'bengali';
   state.optionCount = (test.extraState && test.extraState.optionCount) || 4;
   state.testStarted = !isCorrectPhase;
-  // Save to localStorage for crash recovery
   localStorage.setItem('currentTestData', JSON.stringify({
     answers: state.answers,
     testState: { ...state }
@@ -1821,7 +1779,6 @@ function resumePendingTest(date, isCorrectPhase = false) {
     elements.progressContainer.style.display = 'none';
     elements.timer.style.display = 'none';
   } else {
-    // Resume answering
     elements.timer.style.display = 'block';
     elements.progressContainer.style.display = 'block';
     elements.testControls.style.display = 'flex';
@@ -1860,14 +1817,13 @@ function showModal(message, onConfirm, onCancel) {
   content.innerHTML = `<p>${message}</p>`;
   const buttons = document.createElement('div');
   buttons.className = 'modal-buttons';
-  if (onConfirm) {
-    buttons.innerHTML += `<button class="btn" onclick="closeModal(true)">Yes</button>`;
-  }
-  if (onCancel) {
-    buttons.innerHTML += `<button class="btn btn-secondary" onclick="closeModal(false)">No</button>`;
-  }
-  if (!onConfirm && !onCancel) {
-    buttons.innerHTML += `<button class="btn" onclick="closeModal()">OK</button>`;
+  if (onConfirm && onCancel) {
+    buttons.innerHTML += `<button class="btn" onclick="closeModal(true)">OK</button>`;
+    buttons.innerHTML += `<button class="btn btn-secondary" onclick="closeModal(false)">Cancel</button>`;
+  } else if (onConfirm) {
+    buttons.innerHTML += `<button class="btn" onclick="closeModal(true)">OK</button>`;
+  } else {
+    buttons.innerHTML += `<button class="btn" onclick="closeModal()">Close</button>`;
   }
   content.appendChild(buttons);
   modal.dataset.onConfirm = onConfirm ? onConfirm.toString() : '';
@@ -1889,7 +1845,30 @@ function toggleTheme() {
   document.body.classList.toggle('dark-mode');
   const isDark = document.body.classList.contains('dark-mode');
   localStorage.setItem('darkMode', isDark);
-  document.getElementById('themeToggle').textContent = isDark ? '🌞' : '🌓';
+  if (document.getElementById('themeToggle')) {
+    document.getElementById('themeToggle').textContent = isDark ? '🌞' : '🌓';
+  }
+}
+
+function showHelpModal() {
+  showModal(`
+    <h3>How to Use Gravithon</h3>
+    <ol>
+      <li>Select a subject from the list</li>
+      <li>Enter test details (title, question range, time per question)</li>
+      <li>Answer questions by selecting options</li>
+      <li>Submit answers and check your score</li>
+      <li>Review history to track progress</li>
+    </ol>
+    
+    <h3>Tips for Success</h3>
+    <ul>
+      <li>Practice regularly to improve speed</li>
+      <li>Start with more time per question</li>
+      <li>Analyze mistakes in your history</li>
+      <li>Great for HSC and admission test prep</li>
+    </ul>
+  `);
 }
 
 function closeHistoryModal() {
