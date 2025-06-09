@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -327,15 +326,18 @@ label { font-weight: 700; margin-bottom: 0.5rem; display: block; font-size: 1rem
   display: flex; justify-content: center; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap;
 }
 
-/* Progress bar */
 .progress-container {
   background: #333;
   border-radius: var(--border-radius);
   margin: 1.5rem 0;
   height: 1.5rem;
   overflow: hidden;
-  position: relative;
+  position: sticky;   /* <-- This makes it "sticky" */
+  top: 56px;          /* <-- Adjust this based on your timer's height */
+  z-index: 103;       /* <-- Sits above most content, but below modal/dialogs */
 }
+
+/* Progress Bar Fill */
 .progress-bar {
   height: 100%;
   width: 0%;
@@ -1078,8 +1080,6 @@ function init() {
       alert('Failed to copy email. Please copy manually.');
     });
   });
-
-  // DO NOT add any floating theme toggle button (removed as requested)
 }
 
 function continueTest() {
@@ -1093,7 +1093,6 @@ function continueTest() {
 
   const optionLabels = getOptionLabels(state.optionStyle, state.optionCount);
 
-  // Resume correct answer input phase if that's where the test was left
   if (state.phase === 'providing-correct') {
     state.currentQuestionSet.forEach(qNum => {
       const div = document.createElement('div');
@@ -1113,13 +1112,11 @@ function continueTest() {
         <button class="btn btn-success" onclick="checkAnswers()">Check Answers</button>
         <button class="btn btn-warning" onclick="saveForLater()">Save for Later</button>
         <button class="btn btn-secondary" onclick="goBackToHome()">Cancel</button>
-        
       `;
     elements.progressContainer.style.display = 'none';
     elements.timer.style.display = 'none';
     state.testStarted = false;
   } else {
-    // Resume answering phase
     state.currentQuestionSet.forEach(qNum => {
       const div = document.createElement('div');
       div.className = 'question';
@@ -1140,7 +1137,6 @@ function continueTest() {
         <button class="btn btn-secondary" onclick="saveForLater()">Save for Later</button>
       `;
     updateProgress();
-    // Restore timer
     clearInterval(state.timer);
     updateTimer();
     state.timer = setInterval(updateTimer, 1000);
@@ -1187,13 +1183,13 @@ function loadRecentHistory() {
       <p>${test.subject ?? ''}</p>
       <p>${test.date ?? ''}</p>
       ${test.score !== null && typeof test.score !== 'undefined' ? `<p><strong>Score:</strong> ${test.score}%</p>` : '<p>Pending</p>'}
+      <button class="btn btn-danger btn-xs" style="margin-top: 6px;position:relative;z-index:10;" onclick="event.stopPropagation(); confirmRemoveHistory('${test.title.replace(/'/g, "\\'")}', '${test.subject.replace(/'/g, "\\'")}')">Remove</button>
     `;
     testDiv.addEventListener('click', () => viewTestDetails(test));
     elements.historyScroll.appendChild(testDiv);
   });
 }
 
-// Subject Analysis and chart rendering (unchanged)
 function renderSubjectAnalysis(filter = 'all') {
   let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
   const now = new Date();
@@ -1485,7 +1481,6 @@ function submitAnswers() {
         <button class="btn btn-success" onclick="checkAnswers()">Check Answers</button>
         <button class="btn btn-warning" onclick="saveForLater()">Save for Later</button>
         <button class="btn btn-secondary" onclick="goBackToHome()">Cancel</button>
-        <button class="btn btn-info" onclick="showSubmitButton()">Show Submit Again</button>
       `;
       elements.progressContainer.style.display = 'none';
       elements.timer.style.display = 'none';
@@ -1534,11 +1529,10 @@ function checkAnswers() {
   elements.progressContainer.style.display = 'none';
   saveToHistory('completed', state.answers, state.correctAnswers, state.totalQuestions, score, null, null, 'completed');
   localStorage.removeItem('currentTestData');
-  showModal(`Your score: ${correctCount} / ${state.totalQuestions} (${score}%)`, () => { goBackToHome(); }, null);
+showModal(`Your score: ${correctCount} / ${state.totalQuestions} (${score}%)`, () => { resetToHome(); }, null);
 }
 
 function saveForLater() {
-  // Save all necessary state for resuming the test (including phase)
   saveToHistory('pending', state.answers, state.correctAnswers, state.totalQuestions, null, state.timeLeft, { ...state }, state.phase);
   localStorage.removeItem('currentTestData');
   showModal('Your progress has been saved for later!', () => { resetToHome(); }, null);
@@ -1551,8 +1545,7 @@ function cancelTest() {
       clearInterval(state.timer);
       removePendingFromHistory();
       resetToHome();
-    },
-    () => { /* do nothing, stay */ }
+    }
   );
 }
 
@@ -1648,6 +1641,7 @@ function displayHistory(history) {
           <span style="color: ${statusColor}">${test.status.toUpperCase()}</span>
           ${test.score !== null && typeof test.score !== 'undefined' ? `<span style="font-weight: bold;">Score: ${test.score}%</span>` : ''}
         </div>
+        <button class="btn btn-danger btn-xs" style="margin-top: 7px;position:relative;z-index:10;" onclick="event.stopPropagation(); confirmRemoveHistory('${test.title.replace(/'/g, "\\'")}', '${test.subject.replace(/'/g, "\\'")}')">Remove</button>
       `;
       testDiv.addEventListener('click', () => viewTestDetails(test));
       historyList.appendChild(testDiv);
@@ -1655,7 +1649,36 @@ function displayHistory(history) {
   }
 }
 
+// Remove confirmation modal (always on top, never auto-reopens history)
+function confirmRemoveHistory(title, subject) {
+  closeHistoryModal();
+  setTimeout(() => {
+    showModal(
+      `Are you sure you want to remove "${title}" (${subject}) from history? This cannot be undone.`,
+      () => {
+        removeSinglePendingFromHistory(title, subject, true);
+      },
+      () => {}
+    );
+  }, 100);
+}
+
+function removeSinglePendingFromHistory(title, subject, silent = false) {
+  let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
+  const idx = history.findIndex(t => t.title === title && t.subject === subject);
+  if (idx > -1) {
+    history.splice(idx, 1);
+    localStorage.setItem('omrHistory', JSON.stringify(history));
+    loadRecentHistory();
+    renderSubjectAnalysis();
+    if (!silent) showModal('Test removed from history.', () => { closeModal(); }, null);
+  } else {
+    if (!silent) showModal('Test not found.', () => { closeModal(); }, null);
+  }
+}
+
 function viewTestDetails(test) {
+  closeHistoryModal();
   let content = `
     <h3>${test.title}</h3>
     <p><strong>Subject:</strong> ${test.subject ?? ''}</p>
@@ -1669,14 +1692,12 @@ function viewTestDetails(test) {
     if (test.phase === 'providing-correct') {
       content += `<div class="modal-buttons">
         <button class="btn btn-success" onclick="resumePendingTest('${test.date}', true)">Resume Providing Correct Answers</button>
-        <button class="btn btn-danger" onclick="removeSinglePendingFromHistory('${test.title.replace(/'/g, "\\'")}', '${test.subject.replace(/'/g, "\\'")}')">Remove</button>
-        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+        <button class="btn btn-danger" onclick="confirmRemoveHistory('${test.title.replace(/'/g, "\\'")}', '${test.subject.replace(/'/g, "\\'")}')">Remove</button>
       </div>`;
     } else {
       content += `<div class="modal-buttons">
         <button class="btn btn-success" onclick="resumePendingTest('${test.date}', false)">Resume Test</button>
-        <button class="btn btn-danger" onclick="removeSinglePendingFromHistory('${test.title.replace(/'/g, "\\'")}', '${test.subject.replace(/'/g, "\\'")}')">Remove</button>
-        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+        <button class="btn btn-danger" onclick="confirmRemoveHistory('${test.title.replace(/'/g, "\\'")}', '${test.subject.replace(/'/g, "\\'")}')">Remove</button>
       </div>`;
     }
   } else if (test.status === 'completed') {
@@ -1700,28 +1721,10 @@ function viewTestDetails(test) {
         </tr>
       `;
     });
-    content += `</table></div>
-      <div class="modal-buttons">
-        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
-      </div>`;
+    content += `</table></div>`;
   }
 
   showModal(content);
-  closeHistoryModal();
-}
-
-function removeSinglePendingFromHistory(title, subject) {
-  let history = JSON.parse(localStorage.getItem('omrHistory') || '[]');
-  const idx = history.findIndex(t => t.status === 'pending' && t.title === title && t.subject === subject);
-  if (idx > -1) {
-    history.splice(idx, 1);
-    localStorage.setItem('omrHistory', JSON.stringify(history));
-    loadRecentHistory();
-    renderSubjectAnalysis();
-    showModal('Pending test removed from history.', () => { closeModal(); }, null);
-  } else {
-    showModal('Pending test not found.', () => { closeModal(); }, null);
-  }
 }
 
 function resumePendingTest(date, isCorrectPhase = false) {
@@ -1774,7 +1777,6 @@ function resumePendingTest(date, isCorrectPhase = false) {
       <button class="btn btn-success" onclick="checkAnswers()">Check Answers</button>
       <button class="btn btn-warning" onclick="saveForLater()">Save for Later</button>
       <button class="btn btn-secondary" onclick="goBackToHome()">Cancel</button>
-      <button class="btn btn-info" onclick="showSubmitButton()">Show Submit Again</button>
     `;
     elements.progressContainer.style.display = 'none';
     elements.timer.style.display = 'none';
@@ -1810,34 +1812,55 @@ function resumePendingTest(date, isCorrectPhase = false) {
   }
 }
 
-// Modal functions
+// Modal functions (NO EVAL, robust callback storage)
+const modalCallbacks = { onConfirm: null, onCancel: null };
+
 function showModal(message, onConfirm, onCancel) {
   const modal = document.getElementById('modal');
   const content = document.getElementById('modalContent');
-  content.innerHTML = `<p>${message}</p>`;
+  content.innerHTML = `<div>${message}</div>`;
   const buttons = document.createElement('div');
   buttons.className = 'modal-buttons';
+
+  modalCallbacks.onConfirm = onConfirm || null;
+  modalCallbacks.onCancel = onCancel || null;
+
   if (onConfirm && onCancel) {
-    buttons.innerHTML += `<button class="btn" onclick="closeModal(true)">OK</button>`;
-    buttons.innerHTML += `<button class="btn btn-secondary" onclick="closeModal(false)">Cancel</button>`;
+    const okBtn = document.createElement('button');
+    okBtn.className = 'btn';
+    okBtn.textContent = 'OK';
+    okBtn.onclick = () => { closeModal(true); };
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn btn-secondary';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = () => { closeModal(false); };
+    buttons.appendChild(okBtn);
+    buttons.appendChild(cancelBtn);
   } else if (onConfirm) {
-    buttons.innerHTML += `<button class="btn" onclick="closeModal(true)">OK</button>`;
+    const okBtn = document.createElement('button');
+    okBtn.className = 'btn';
+    okBtn.textContent = 'OK';
+    okBtn.onclick = () => { closeModal(true); };
+    buttons.appendChild(okBtn);
   } else {
-    buttons.innerHTML += `<button class="btn" onclick="closeModal()">Close</button>`;
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'btn';
+    closeBtn.textContent = 'Close';
+    closeBtn.onclick = () => { closeModal(); };
+    buttons.appendChild(closeBtn);
   }
   content.appendChild(buttons);
-  modal.dataset.onConfirm = onConfirm ? onConfirm.toString() : '';
-  modal.dataset.onCancel = onCancel ? onCancel.toString() : '';
   modal.style.display = 'flex';
+  modal.style.zIndex = 99999;
 }
 
 function closeModal(confirmed) {
   const modal = document.getElementById('modal');
   modal.style.display = 'none';
-  if (confirmed === true && modal.dataset.onConfirm) {
-    eval('(' + modal.dataset.onConfirm + ')')();
-  } else if (confirmed === false && modal.dataset.onCancel) {
-    eval('(' + modal.dataset.onCancel + ')')();
+  if (confirmed === true && typeof modalCallbacks.onConfirm === 'function') {
+    modalCallbacks.onConfirm();
+  } else if (confirmed === false && typeof modalCallbacks.onCancel === 'function') {
+    modalCallbacks.onCancel();
   }
 }
 
@@ -1860,7 +1883,6 @@ function showHelpModal() {
       <li>Submit answers and check your score</li>
       <li>Review history to track progress</li>
     </ol>
-    
     <h3>Tips for Success</h3>
     <ul>
       <li>Practice regularly to improve speed</li>
@@ -1872,10 +1894,29 @@ function showHelpModal() {
 }
 
 function closeHistoryModal() {
-  document.getElementById('historyModal').style.display = 'none';
+  const modal = document.getElementById('historyModal');
+  if (modal) modal.style.display = 'none';
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+window.confirmRemoveHistory = confirmRemoveHistory;
+window.removeSinglePendingFromHistory = removeSinglePendingFromHistory;
+window.viewTestDetails = viewTestDetails;
+window.resumePendingTest = resumePendingTest;
+window.selectAnswer = selectAnswer;
+window.selectCorrect = selectCorrect;
+window.submitAnswers = submitAnswers;
+window.checkAnswers = checkAnswers;
+window.saveForLater = saveForLater;
+window.cancelTest = cancelTest;
+window.goBackToHome = goBackToHome;
+window.handleSubjectKeyDown = handleSubjectKeyDown;
+window.startTest = startTest;
+window.showHelpModal = showHelpModal;
+window.showHistory = showHistory;
+window.closeHistoryModal = closeHistoryModal;
+window.toggleTheme = toggleTheme;
 </script>
 </body>
 </html>
