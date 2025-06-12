@@ -511,9 +511,8 @@ label { font-weight: 700; margin-bottom: 0.35rem; display: block; font-size: 0.9
   font-weight: bold;
   font-size: 0.75rem;
   border-radius: 0.25rem 0.25rem 0 0;
-  background: var(--accent-gradient);
-  background-size: 200% 200%;
-  animation: gradientMove 3s linear infinite;
+  background: var(--subject-color); /* We'll add this variable */
+  transition: height 0.5s ease;
 }
 .chart-label {
   margin-top: 0.5rem;
@@ -527,7 +526,6 @@ label { font-weight: 700; margin-bottom: 0.35rem; display: block; font-size: 0.9
   align-items: center;
   justify-content: center;
 }
-
 /* Time filter buttons */
 .time-filter {
   display: flex;
@@ -772,13 +770,13 @@ body:not(.dark-mode) .history-item {
 <body>
 
 <div class="container">
-<div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 16px;">
-  <img src="logo.png" alt="Gravithon Logo" style="height:72px; width:auto; display:block;">
-  <h1 style="font-size:2.3rem; margin:0; font-family:'Poppins',sans-serif; font-weight:700;">
-    Gravithon
-  </h1>
-<h3>Topper's Secret</h3>
-</div>
+  <div id="homeScreen" class="home-container">
+    <!-- Add this logo div -->
+    <div style="text-align: center; margin-bottom: 10px;">
+      <img src="logo.png" alt="Gravithon Logo" style="height: 60px; width: auto;">
+    </div>
+    
+    <h1 align="center">Gravithon - Topper's Secret</h1>
     <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
       <button class="btn btn-secondary" onclick="toggleTheme()" style="border-radius: 5px; padding: 8px 16px;">🌓 Change Mode</button>
       <button class="btn btn-secondary" onclick="showHelpModal()" style="border-radius: 5px; padding: 8px 16px;">❓ Help</button>
@@ -1080,6 +1078,26 @@ function handleSubjectKeyDown(event, subject) {
   }
 }
 
+// Subject color mapping
+function getSubjectColor(subject) {
+  const colors = {
+    'English 1st Paper': '#3498db',
+    'English 2nd Paper': '#2980b9',
+    'Bengali 1st Paper': '#e74c3c',
+    'Bengali 2nd Paper': '#c0392b',
+    'Mathematics 1st Paper': '#2ecc71',
+    'Mathematics 2nd Paper': '#27ae60',
+    'Physics 1st Paper': '#9b59b6',
+    'Physics 2nd Paper': '#8e44ad',
+    'Biology 1st Paper': '#1abc9c',
+    'Biology 2nd Paper': '#16a085',
+    'Chemistry 1st Paper': '#e67e22',
+    'Chemistry 2nd Paper': '#d35400',
+    'Information and Communication Technology': '#f1c40f'
+  };
+  return colors[subject] || '#95a5a6';
+}
+
 // Helper: Scroll to top for user focus
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1299,7 +1317,7 @@ function renderSubjectAnalysis(filter = 'all') {
     const bar = document.createElement('div');
     bar.className = 'bar';
     bar.style.height = `${barHeight}px`;
-    bar.style.backgroundColor = getSubjectColor(subject);
+bar.style.setProperty('--subject-color', getSubjectColor(subject));
     bar.title = `${subject}: ${score}%`;
     if (score > 0) {
       bar.textContent = score;
@@ -1314,25 +1332,6 @@ function renderSubjectAnalysis(filter = 'all') {
     barContainer.appendChild(label);
     elements.chartContainer.appendChild(barContainer);
   });
-}
-
-function getSubjectColor(subject) {
-  const colors = {
-    'English 1st Paper': '#3a506b',
-    'English 2nd Paper': '#3a506b',
-    'Bengali 1st Paper': '#5d5179',
-    'Bengali 2nd Paper': '#5d5179',
-    'Mathematics 1st Paper': '#6a4c93',
-    'Mathematics 2nd Paper': '#6a4c93',
-    'Physics 1st Paper': '#1982c4',
-    'Physics 2nd Paper': '#1982c4',
-    'Biology 1st Paper': '#8ac926',
-    'Biology 2nd Paper': '#8ac926',
-    'Chemistry 1st Paper': '#ff595e',
-    'Chemistry 2nd Paper': '#ff595e',
-    'Information and Communication Technology': '#ffca3a'
-  };
-  return colors[subject] || '#444';
 }
 
 function filterAnalysis(filter) {
@@ -2028,3 +2027,4 @@ window.showAreYouSureModal = showAreYouSureModal;
 </script>
 </body>
 </html>
+Check why the bars colour are not different?
