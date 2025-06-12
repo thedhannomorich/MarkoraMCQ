@@ -1,15 +1,15 @@
-
 <!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="logo.png">
 <title>Gravithon</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
-/* Animations */
+/* Animations */<link rel="icon" type="image/png" href="logo.png">
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px);}
   to { opacity: 1; transform: translateY(0);}
@@ -111,7 +111,7 @@ input[type="text"], input[type="number"], select {
   font-size: 0.96rem;
   font-family: var(--bangla-font);
   outline-offset: 2px;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s, color 0.2s;
   min-height: var(--min-touch-size);
 }
 input[type="text"]:invalid, input[type="number"]:invalid { border-color: #884b4b;}
@@ -685,14 +685,43 @@ body:not(.dark-mode) .question {
   border: 1px solid #e1e1e4;
 }
 body:not(.dark-mode) .option-btn {
-  background: var(--option-gradient);
-  color: #232529;
+  background: var(--option-gradient) !important;
+  color: #232529 !important;
   border: 2px solid #d2d6da;
+  background-image: var(--option-gradient) !important;
 }
 body:not(.dark-mode) .option-btn.selected {
-  background: var(--accent-gradient);
-  color: #f1f2f4;
+  background: var(--accent-gradient) !important;
+  color: #f1f2f4 !important;
   border-color: #7cc6a8;
+  background-image: var(--accent-gradient) !important;
+}
+body:not(.dark-mode) input[type="text"],
+body:not(.dark-mode) input[type="number"],
+body:not(.dark-mode) select {
+  background: #fff;
+  color: #232529;
+  border: 1px solid #c8cbd1;
+}
+body:not(.dark-mode) input[type="text"]:focus,
+body:not(.dark-mode) input[type="number"]:focus,
+body:not(.dark-mode) select:focus {
+  border-color: #7cc6a8;
+  outline: 2px solid #7cc6a8;
+}
+body:not(.dark-mode) label {
+  color: #232529;
+}
+body:not(.dark-mode) #timer {
+  background: #e3ede8;
+  color: #232529;
+  box-shadow: 0 2px 10px #a1b8b033;
+}
+body:not(.dark-mode) #timer.warning {
+  color: #cab389;
+}
+body:not(.dark-mode) #timer.critical {
+  color: #b17e7e;
 }
 body:not(.dark-mode) .question.mistake {
   border: 2px solid #b17e7e;
@@ -705,14 +734,14 @@ body:not(.dark-mode) .question.correct {
   color: #fff;
 }
 body:not(.dark-mode) .modal {
-  background: rgba(240, 240, 240, 0.9);
+  background: rgba(240, 240, 240, 0.93);
   backdrop-filter: blur(3px);
 }
 body:not(.dark-mode) .modal-content {
   background: #f1f2f4;
   color: #232529;
 }
-body:not(.dark-mode) .footer {
+body:not(.dark-mode) footer {
   background: #f1f2f4;
   color: #7e7f85;
   border-top: 1px solid #e1e1e4;
@@ -738,14 +767,19 @@ body:not(.dark-mode) .history-item {
 }
 
 /* Theme toggle button */
-.theme-toggle { transition: background 0.18s, color 0.18s;}</style>
+.theme-toggle { transition: background 0.18s, color 0.18s;}
+</style>
 <body>
 
 <div class="container">
-  <div id="homeScreen" class="home-container">
-    <h1 align="center">Gravithon</h1>
+<div style="display:flex; align-items:center; justify-content:center; gap:18px; margin-bottom:16px;">
+  <img src="logo.png" alt="Gravithon Logo" style="height:72px; width:auto; display:block;">
+  <h1 style="font-size:2.3rem; margin:0; font-family:'Poppins',sans-serif; font-weight:700;">
+    Gravithon - Topper's Secret
+  </h1>
+</div>
     <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
-      <button class="btn btn-secondary" onclick="toggleTheme()" style="border-radius: 5px; padding: 8px 16px;">🌓 Dark Mode</button>
+      <button class="btn btn-secondary" onclick="toggleTheme()" style="border-radius: 5px; padding: 8px 16px;">🌓 Change Mode</button>
       <button class="btn btn-secondary" onclick="showHelpModal()" style="border-radius: 5px; padding: 8px 16px;">❓ Help</button>
     </div>
     
@@ -984,18 +1018,6 @@ const state = {
   phase: 'answering' // Track whether in answering or correct answer phase
 };
 
-// Warn the user before reload if in test or answer input stage
-window.addEventListener('beforeunload', function (e) {
-  if (
-    state.testStarted ||
-    (elements.questionContainer && elements.questionContainer.innerHTML.includes('Correct Answer for Question'))
-  ) {
-    const confirmationMessage = 'You have an unfinished test. Are you sure you want to leave? Changes might not save.';
-    (e || window.event).returnValue = confirmationMessage;
-    return confirmationMessage;
-  }
-});
-
 // DOM elements
 const elements = {
   homeScreen: document.getElementById('homeScreen'),
@@ -1011,6 +1033,31 @@ const elements = {
   historyScroll: document.getElementById('historyScroll'),
   chartContainer: document.getElementById('chartContainer')
 };
+
+// Save unfinished test to history before unload
+window.addEventListener('beforeunload', function (e) {
+  if (
+    state.testStarted ||
+    (elements.questionContainer && elements.questionContainer.innerHTML.includes('Correct Answer for Question'))
+  ) {
+    // Save current state as pending before leaving
+    saveToHistory(
+      'pending',
+      state.answers,
+      state.correctAnswers,
+      state.totalQuestions,
+      null,
+      state.timeLeft,
+      { ...state },
+      state.phase
+    );
+    localStorage.removeItem('currentTestData');
+    // Remind user, but do not offer resume modal
+    const confirmationMessage = 'You have an unfinished test. Are you sure you want to leave? Changes might not save.';
+    (e || window.event).returnValue = confirmationMessage;
+    return confirmationMessage;
+  }
+});
 
 // Option label generator utility
 function getOptionLabels(style, count) {
@@ -1048,41 +1095,16 @@ function showAreYouSureModal(message, onYes, onNo) {
 
 // Initialize the app
 function init() {
-  // Fix: On reload, always check for unfinished test and prompt
+  // On reload, simply remind if unfinished test exists (no more resume prompt)
   const unfinishedTest = localStorage.getItem('currentTestData');
   if (unfinishedTest) {
     showModal(
-      'You have an unfinished test. Would you like to resume it now?',
-      () => {
-        const testData = JSON.parse(unfinishedTest);
-        Object.assign(state, testData.testState);
-        state.answers = testData.answers || {};
-        continueTest();
-      },
-      () => {
-        showAreYouSureModal(
-          'Are you sure you want to discard your unfinished test? This cannot be undone.',
-          () => {
-            localStorage.removeItem('currentTestData');
-            loadRecentHistory();
-          },
-          () => {
-            showModal(
-              'You have an unfinished test. Would you like to resume it now?',
-              () => {
-                const testData = JSON.parse(unfinishedTest);
-                Object.assign(state, testData.testState);
-                state.answers = testData.answers || {};
-                continueTest();
-              },
-              () => {
-                loadRecentHistory();
-              }
-            );
-          }
-        );
-      }
+      'You have an unfinished test. It has been saved in the History Section.',
+      null,
+      null
     );
+    localStorage.removeItem('currentTestData');
+    loadRecentHistory();
   } else {
     loadRecentHistory();
   }
@@ -1117,6 +1139,7 @@ function init() {
 
 function continueTest() {
   scrollToTop();
+  elements.homeScreen.style.display = 'none';
   elements.setupForm.style.display = 'none';
   elements.resultStats.style.display = 'none';
   elements.testControls.style.display = 'flex';
@@ -1866,8 +1889,14 @@ function showModal(message, onConfirm, onCancel) {
   modalCallbacks.onConfirm = onConfirm || null;
   modalCallbacks.onCancel = onCancel || null;
 
-  // Consistent modal: if any confirm/cancel, show both
-  if (onConfirm && onCancel) {
+  // Only show OK if only "reminder"
+  if (!onConfirm && !onCancel) {
+    const okBtn = document.createElement('button');
+    okBtn.className = 'btn';
+    okBtn.textContent = 'OK';
+    okBtn.onclick = () => { closeModal(true); };
+    buttons.appendChild(okBtn);
+  } else if (onConfirm && onCancel) {
     const yesBtn = document.createElement('button');
     yesBtn.className = 'btn';
     yesBtn.textContent = 'Yes';
